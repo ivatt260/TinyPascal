@@ -1,0 +1,2737 @@
+                        ; created from PL0 compiler
+                        
+   0000                 OPLIT      EQU 000H
+   0001                 OPOPR      EQU 001H
+   0002                 OPLOD      EQU 002H
+   0003                 OPSTO      EQU 003H
+   0004                 OPCAL      EQU 004H
+   0005                 OPINT      EQU 005H
+   0006                 OPJMP      EQU 006H
+   0007                 OPJPC      EQU 007H
+   0008                 OPXIT      EQU 008H
+   0009                 OPRET      EQU 009H
+   000a                 TXOUT      EQU 00AH
+   000b                 TXTIN      EQU 00BH
+   000c                 OPSTK      EQU 00CH
+   000d                 OPVER      EQU 00DH
+                        
+   8800                 PLPROG    EQU 08000H + 0800H
+   8800                           ORG  PLPROG
+                        
+                        
+                        ;      0  ver  012340
+   8800   0d                      DB     OPVER
+   8801   00                      DB     0
+   8802   30 34                   DW 12340
+                        
+                        ;      1  jmp  0  470
+   8804   06                      DB     OPJMP
+   8805   00                      DB     0
+   8806   8f 58                   DW     PLPROG + (470 SHL 2)
+                        
+                        ;      2  jmp  0    3
+   8808   06                      DB     OPJMP
+   8809   00                      DB     0
+   880a   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;      3  int  0    6
+   880c   05                      DB     OPINT
+   880d   00                      DB     0
+   880e   00 0c                   DW     (6 SHL 1)
+                        
+                        ;      4  lod  0    4
+   8810   02                      DB     OPLOD
+   8811   00                      DB     0
+   8812   00 08                   DW     (4 SHL 1)
+                        
+                        ;      5  lit  0    1
+   8814   00                      DB     OPLIT
+   8815   00                      DB     0
+   8816   00 01                   DW     1
+                        
+                        ;      6  opr  0   10
+   8818   01                      DB     OPOPR
+   8819   00                      DB     0
+   881a   00 0a                   DW    10
+                        
+                        ;      7  lod  0    4
+   881c   02                      DB     OPLOD
+   881d   00                      DB     0
+   881e   00 08                   DW     (4 SHL 1)
+                        
+                        ;      8  lod  1    4
+   8820   02                      DB     OPLOD
+   8821   01                      DB     1
+   8822   00 08                   DW     (4 SHL 1)
+                        
+                        ;      9  opr  0   12
+   8824   01                      DB     OPOPR
+   8825   00                      DB     0
+   8826   00 0c                   DW    12
+                        
+                        ;     10  opr  0   15
+   8828   01                      DB     OPOPR
+   8829   00                      DB     0
+   882a   00 0f                   DW    15
+                        
+                        ;     11  jpc  0   18
+   882c   07                      DB     OPJPC
+   882d   00                      DB     0
+   882e   88 48                   DW     PLPROG + (18 SHL 2)
+                        
+                        ;     12  tot  1    3
+   8830   0a                      DB     TXOUT
+   8831   01                      DB     1
+   8832   8f f3                   DW     CONSTCHARTXT+3
+                        
+                        ;     13  lod  0    4
+   8834   02                      DB     OPLOD
+   8835   00                      DB     0
+   8836   00 08                   DW     (4 SHL 1)
+                        
+                        ;     14  tot  2    0
+   8838   0a                      DB     TXOUT
+   8839   02                      DB     2
+   883a   00 00                   DW     0 ; uint16, on stack
+                        
+                        ;     15  tot  1    0
+   883c   0a                      DB     TXOUT
+   883d   01                      DB     1
+   883e   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;     16  lit  0    1
+   8840   00                      DB     OPLIT
+   8841   00                      DB     0
+   8842   00 01                   DW     1
+                        
+                        ;     17  sto  0    4
+   8844   03                      DB     OPSTO
+   8845   00                      DB     0
+   8846   00 08                   DW     (4 SHL 1)
+                        
+                        ;     18  lod  0    5
+   8848   02                      DB     OPLOD
+   8849   00                      DB     0
+   884a   00 0a                   DW     (5 SHL 1)
+                        
+                        ;     19  lit  0    1
+   884c   00                      DB     OPLIT
+   884d   00                      DB     0
+   884e   00 01                   DW     1
+                        
+                        ;     20  opr  0   10
+   8850   01                      DB     OPOPR
+   8851   00                      DB     0
+   8852   00 0a                   DW    10
+                        
+                        ;     21  lod  0    5
+   8854   02                      DB     OPLOD
+   8855   00                      DB     0
+   8856   00 0a                   DW     (5 SHL 1)
+                        
+                        ;     22  lod  1    3
+   8858   02                      DB     OPLOD
+   8859   01                      DB     1
+   885a   00 06                   DW     (3 SHL 1)
+                        
+                        ;     23  opr  0   12
+   885c   01                      DB     OPOPR
+   885d   00                      DB     0
+   885e   00 0c                   DW    12
+                        
+                        ;     24  opr  0   15
+   8860   01                      DB     OPOPR
+   8861   00                      DB     0
+   8862   00 0f                   DW    15
+                        
+                        ;     25  jpc  0   32
+   8864   07                      DB     OPJPC
+   8865   00                      DB     0
+   8866   88 80                   DW     PLPROG + (32 SHL 2)
+                        
+                        ;     26  tot  1   22
+   8868   0a                      DB     TXOUT
+   8869   01                      DB     1
+   886a   90 06                   DW     CONSTCHARTXT+22
+                        
+                        ;     27  lod  0    5
+   886c   02                      DB     OPLOD
+   886d   00                      DB     0
+   886e   00 0a                   DW     (5 SHL 1)
+                        
+                        ;     28  tot  2    0
+   8870   0a                      DB     TXOUT
+   8871   02                      DB     2
+   8872   00 00                   DW     0 ; uint16, on stack
+                        
+                        ;     29  tot  1    0
+   8874   0a                      DB     TXOUT
+   8875   01                      DB     1
+   8876   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;     30  lit  0    1
+   8878   00                      DB     OPLIT
+   8879   00                      DB     0
+   887a   00 01                   DW     1
+                        
+                        ;     31  sto  0    5
+   887c   03                      DB     OPSTO
+   887d   00                      DB     0
+   887e   00 0a                   DW     (5 SHL 1)
+                        
+                        ;     32  lod  1   17
+   8880   02                      DB     OPLOD
+   8881   01                      DB     1
+   8882   00 22                   DW     (17 SHL 1)
+                        
+                        ;     33  lod  0    5
+   8884   02                      DB     OPLOD
+   8885   00                      DB     0
+   8886   00 0a                   DW     (5 SHL 1)
+                        
+                        ;     34  opr  0    2
+   8888   01                      DB     OPOPR
+   8889   00                      DB     0
+   888a   00 02                   DW     2
+                        
+                        ;     35  lod  0    4
+   888c   02                      DB     OPLOD
+   888d   00                      DB     0
+   888e   00 08                   DW     (4 SHL 1)
+                        
+                        ;     36  lit  0    1
+   8890   00                      DB     OPLIT
+   8891   00                      DB     0
+   8892   00 01                   DW     1
+                        
+                        ;     37  opr  0    3
+   8894   01                      DB     OPOPR
+   8895   00                      DB     0
+   8896   00 03                   DW     3
+                        
+                        ;     38  lod  1    3
+   8898   02                      DB     OPLOD
+   8899   01                      DB     1
+   889a   00 06                   DW     (3 SHL 1)
+                        
+                        ;     39  opr  0    4
+   889c   01                      DB     OPOPR
+   889d   00                      DB     0
+   889e   00 04                   DW     4
+                        
+                        ;     40  opr  0    2
+   88a0   01                      DB     OPOPR
+   88a1   00                      DB     0
+   88a2   00 02                   DW     2
+                        
+                        ;     41  sto  0    3
+   88a4   03                      DB     OPSTO
+   88a5   00                      DB     0
+   88a6   00 06                   DW     (3 SHL 1)
+                        
+                        ;     42  ret  1    0
+   88a8   09                      DB     OPRET
+   88a9   01                      DB     1
+   88aa   00 00                   DW     0
+                        
+                        ;     43  jmp  0   44
+   88ac   06                      DB     OPJMP
+   88ad   00                      DB     0
+   88ae   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;     44  int  0    9
+   88b0   05                      DB     OPINT
+   88b1   00                      DB     0
+   88b2   00 12                   DW     (9 SHL 1)
+                        
+                        ;     45  lod  0    3
+   88b4   02                      DB     OPLOD
+   88b5   00                      DB     0
+   88b6   00 06                   DW     (3 SHL 1)
+                        
+                        ;     46  sto  0    7
+   88b8   03                      DB     OPSTO
+   88b9   00                      DB     0
+   88ba   00 0e                   DW     (7 SHL 1)
+                        
+                        ;     47  lod  0    4
+   88bc   02                      DB     OPLOD
+   88bd   00                      DB     0
+   88be   00 08                   DW     (4 SHL 1)
+                        
+                        ;     48  sto  0    8
+   88c0   03                      DB     OPSTO
+   88c1   00                      DB     0
+   88c2   00 10                   DW     (8 SHL 1)
+                        
+                        ;     49  lod  0    8
+   88c4   02                      DB     OPLOD
+   88c5   00                      DB     0
+   88c6   00 10                   DW     (8 SHL 1)
+                        
+                        ;     50  lod  0    6
+   88c8   02                      DB     OPLOD
+   88c9   00                      DB     0
+   88ca   00 0c                   DW     (6 SHL 1)
+                        
+                        ;     51  opr  0   13
+   88cc   01                      DB     OPOPR
+   88cd   00                      DB     0
+   88ce   00 0d                   DW    13
+                        
+                        ;     52  jpc  0   65
+   88d0   07                      DB     OPJPC
+   88d1   00                      DB     0
+   88d2   89 04                   DW     PLPROG + (65 SHL 2)
+                        
+                        ;     53  stk  1    4
+   88d4   0c                      DB     OPSTK
+   88d5   01                      DB     1
+   88d6   00 08                   DW     (4 SHL 1)
+                        
+                        ;     54  lod  0    7
+   88d8   02                      DB     OPLOD
+   88d9   00                      DB     0
+   88da   00 0e                   DW     (7 SHL 1)
+                        
+                        ;     55  lod  0    8
+   88dc   02                      DB     OPLOD
+   88dd   00                      DB     0
+   88de   00 10                   DW     (8 SHL 1)
+                        
+                        ;     56  stk  0    6
+   88e0   0c                      DB     OPSTK
+   88e1   00                      DB     0
+   88e2   00 0c                   DW     (6 SHL 1)
+                        
+                        ;     57  cal  1    3
+   88e4   04                      DB     OPCAL
+   88e5   01                      DB     1
+   88e6   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;     58  lod  1    6
+   88e8   02                      DB     OPLOD
+   88e9   01                      DB     1
+   88ea   00 0c                   DW     (6 SHL 1)
+                        
+                        ;     59  opr  0   18
+   88ec   01                      DB     OPOPR
+   88ed   00                      DB     0
+   88ee   00 12                   DW    18
+                        
+                        ;     60  lod  0    8
+   88f0   02                      DB     OPLOD
+   88f1   00                      DB     0
+   88f2   00 10                   DW     (8 SHL 1)
+                        
+                        ;     61  lit  0    1
+   88f4   00                      DB     OPLIT
+   88f5   00                      DB     0
+   88f6   00 01                   DW     1
+                        
+                        ;     62  opr  0    2
+   88f8   01                      DB     OPOPR
+   88f9   00                      DB     0
+   88fa   00 02                   DW     2
+                        
+                        ;     63  sto  0    8
+   88fc   03                      DB     OPSTO
+   88fd   00                      DB     0
+   88fe   00 10                   DW     (8 SHL 1)
+                        
+                        ;     64  jmp  0   49
+   8900   06                      DB     OPJMP
+   8901   00                      DB     0
+   8902   88 c4                   DW     PLPROG + (49 SHL 2)
+                        
+                        ;     65  ret  0    0
+   8904   09                      DB     OPRET
+   8905   00                      DB     0
+   8906   00 00                   DW     0
+                        
+                        ;     66  jmp  0   67
+   8908   06                      DB     OPJMP
+   8909   00                      DB     0
+   890a   89 0c                   DW     PLPROG + (67 SHL 2)
+                        
+                        ;     67  int  0    9
+   890c   05                      DB     OPINT
+   890d   00                      DB     0
+   890e   00 12                   DW     (9 SHL 1)
+                        
+                        ;     68  lod  0    4
+   8910   02                      DB     OPLOD
+   8911   00                      DB     0
+   8912   00 08                   DW     (4 SHL 1)
+                        
+                        ;     69  sto  0    8
+   8914   03                      DB     OPSTO
+   8915   00                      DB     0
+   8916   00 10                   DW     (8 SHL 1)
+                        
+                        ;     70  lod  0    3
+   8918   02                      DB     OPLOD
+   8919   00                      DB     0
+   891a   00 06                   DW     (3 SHL 1)
+                        
+                        ;     71  sto  0    7
+   891c   03                      DB     OPSTO
+   891d   00                      DB     0
+   891e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;     72  lod  0    7
+   8920   02                      DB     OPLOD
+   8921   00                      DB     0
+   8922   00 0e                   DW     (7 SHL 1)
+                        
+                        ;     73  lod  0    5
+   8924   02                      DB     OPLOD
+   8925   00                      DB     0
+   8926   00 0a                   DW     (5 SHL 1)
+                        
+                        ;     74  opr  0   13
+   8928   01                      DB     OPOPR
+   8929   00                      DB     0
+   892a   00 0d                   DW    13
+                        
+                        ;     75  jpc  0   88
+   892c   07                      DB     OPJPC
+   892d   00                      DB     0
+   892e   89 60                   DW     PLPROG + (88 SHL 2)
+                        
+                        ;     76  stk  1    4
+   8930   0c                      DB     OPSTK
+   8931   01                      DB     1
+   8932   00 08                   DW     (4 SHL 1)
+                        
+                        ;     77  lod  0    7
+   8934   02                      DB     OPLOD
+   8935   00                      DB     0
+   8936   00 0e                   DW     (7 SHL 1)
+                        
+                        ;     78  lod  0    8
+   8938   02                      DB     OPLOD
+   8939   00                      DB     0
+   893a   00 10                   DW     (8 SHL 1)
+                        
+                        ;     79  stk  0    6
+   893c   0c                      DB     OPSTK
+   893d   00                      DB     0
+   893e   00 0c                   DW     (6 SHL 1)
+                        
+                        ;     80  cal  1    3
+   8940   04                      DB     OPCAL
+   8941   01                      DB     1
+   8942   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;     81  lod  1    6
+   8944   02                      DB     OPLOD
+   8945   01                      DB     1
+   8946   00 0c                   DW     (6 SHL 1)
+                        
+                        ;     82  opr  0   18
+   8948   01                      DB     OPOPR
+   8949   00                      DB     0
+   894a   00 12                   DW    18
+                        
+                        ;     83  lod  0    7
+   894c   02                      DB     OPLOD
+   894d   00                      DB     0
+   894e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;     84  lit  0    1
+   8950   00                      DB     OPLIT
+   8951   00                      DB     0
+   8952   00 01                   DW     1
+                        
+                        ;     85  opr  0    2
+   8954   01                      DB     OPOPR
+   8955   00                      DB     0
+   8956   00 02                   DW     2
+                        
+                        ;     86  sto  0    7
+   8958   03                      DB     OPSTO
+   8959   00                      DB     0
+   895a   00 0e                   DW     (7 SHL 1)
+                        
+                        ;     87  jmp  0   72
+   895c   06                      DB     OPJMP
+   895d   00                      DB     0
+   895e   89 20                   DW     PLPROG + (72 SHL 2)
+                        
+                        ;     88  ret  0    0
+   8960   09                      DB     OPRET
+   8961   00                      DB     0
+   8962   00 00                   DW     0
+                        
+                        ;     89  jmp  0   90
+   8964   06                      DB     OPJMP
+   8965   00                      DB     0
+   8966   89 68                   DW     PLPROG + (90 SHL 2)
+                        
+                        ;     90  int  0    5
+   8968   05                      DB     OPINT
+   8969   00                      DB     0
+   896a   00 0a                   DW     (5 SHL 1)
+                        
+                        ;     91  lit  0   11
+   896c   00                      DB     OPLIT
+   896d   00                      DB     0
+   896e   00 0b                   DW    11
+                        
+                        ;     92  sto  1    4
+   8970   03                      DB     OPSTO
+   8971   01                      DB     1
+   8972   00 08                   DW     (4 SHL 1)
+                        
+                        ;     93  lit  0   11
+   8974   00                      DB     OPLIT
+   8975   00                      DB     0
+   8976   00 0b                   DW    11
+                        
+                        ;     94  sto  1    3
+   8978   03                      DB     OPSTO
+   8979   01                      DB     1
+   897a   00 06                   DW     (3 SHL 1)
+                        
+                        ;     95  tot  1   41
+   897c   0a                      DB     TXOUT
+   897d   01                      DB     1
+   897e   90 19                   DW     CONSTCHARTXT+41
+                        
+                        ;     96  lod  1   16
+   8980   02                      DB     OPLOD
+   8981   01                      DB     1
+   8982   00 20                   DW     (16 SHL 1)
+                        
+                        ;     97  tot  2    0
+   8984   0a                      DB     TXOUT
+   8985   02                      DB     2
+   8986   00 00                   DW     0 ; uint16, on stack
+                        
+                        ;     98  tot  1   55
+   8988   0a                      DB     TXOUT
+   8989   01                      DB     1
+   898a   90 27                   DW     CONSTCHARTXT+55
+                        
+                        ;     99  lod  1    4
+   898c   02                      DB     OPLOD
+   898d   01                      DB     1
+   898e   00 08                   DW     (4 SHL 1)
+                        
+                        ;    100  lod  1    3
+   8990   02                      DB     OPLOD
+   8991   01                      DB     1
+   8992   00 06                   DW     (3 SHL 1)
+                        
+                        ;    101  opr  0    4
+   8994   01                      DB     OPOPR
+   8995   00                      DB     0
+   8996   00 04                   DW     4
+                        
+                        ;    102  tot  2    0
+   8998   0a                      DB     TXOUT
+   8999   02                      DB     2
+   899a   00 00                   DW     0 ; uint16, on stack
+                        
+                        ;    103  tot  1    0
+   899c   0a                      DB     TXOUT
+   899d   01                      DB     1
+   899e   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    104  lod  1    4
+   89a0   02                      DB     OPLOD
+   89a1   01                      DB     1
+   89a2   00 08                   DW     (4 SHL 1)
+                        
+                        ;    105  lod  1    3
+   89a4   02                      DB     OPLOD
+   89a5   01                      DB     1
+   89a6   00 06                   DW     (3 SHL 1)
+                        
+                        ;    106  opr  0    4
+   89a8   01                      DB     OPOPR
+   89a9   00                      DB     0
+   89aa   00 04                   DW     4
+                        
+                        ;    107  lod  1   16
+   89ac   02                      DB     OPLOD
+   89ad   01                      DB     1
+   89ae   00 20                   DW     (16 SHL 1)
+                        
+                        ;    108  opr  0   12
+   89b0   01                      DB     OPOPR
+   89b1   00                      DB     0
+   89b2   00 0c                   DW    12
+                        
+                        ;    109  jpc  0  113
+   89b4   07                      DB     OPJPC
+   89b5   00                      DB     0
+   89b6   89 c4                   DW     PLPROG + (113 SHL 2)
+                        
+                        ;    110  tot  1   69
+   89b8   0a                      DB     TXOUT
+   89b9   01                      DB     1
+   89ba   90 35                   DW     CONSTCHARTXT+69
+                        
+                        ;    111  tot  1    0
+   89bc   0a                      DB     TXOUT
+   89bd   01                      DB     1
+   89be   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    112  jmp  0  115
+   89c0   06                      DB     OPJMP
+   89c1   00                      DB     0
+   89c2   89 cc                   DW     PLPROG + (115 SHL 2)
+                        
+                        ;    113  tot  1   88
+   89c4   0a                      DB     TXOUT
+   89c5   01                      DB     1
+   89c6   90 48                   DW     CONSTCHARTXT+88
+                        
+                        ;    114  tot  1    0
+   89c8   0a                      DB     TXOUT
+   89c9   01                      DB     1
+   89ca   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    115  lit  0    1
+   89cc   00                      DB     OPLIT
+   89cd   00                      DB     0
+   89ce   00 01                   DW     1
+                        
+                        ;    116  sto  0    3
+   89d0   03                      DB     OPSTO
+   89d1   00                      DB     0
+   89d2   00 06                   DW     (3 SHL 1)
+                        
+                        ;    117  lod  0    3
+   89d4   02                      DB     OPLOD
+   89d5   00                      DB     0
+   89d6   00 06                   DW     (3 SHL 1)
+                        
+                        ;    118  lod  1    4
+   89d8   02                      DB     OPLOD
+   89d9   01                      DB     1
+   89da   00 08                   DW     (4 SHL 1)
+                        
+                        ;    119  opr  0   13
+   89dc   01                      DB     OPOPR
+   89dd   00                      DB     0
+   89de   00 0d                   DW    13
+                        
+                        ;    120  jpc  0  144
+   89e0   07                      DB     OPJPC
+   89e1   00                      DB     0
+   89e2   8a 40                   DW     PLPROG + (144 SHL 2)
+                        
+                        ;    121  lit  0    1
+   89e4   00                      DB     OPLIT
+   89e5   00                      DB     0
+   89e6   00 01                   DW     1
+                        
+                        ;    122  sto  0    4
+   89e8   03                      DB     OPSTO
+   89e9   00                      DB     0
+   89ea   00 08                   DW     (4 SHL 1)
+                        
+                        ;    123  lod  0    4
+   89ec   02                      DB     OPLOD
+   89ed   00                      DB     0
+   89ee   00 08                   DW     (4 SHL 1)
+                        
+                        ;    124  lod  1    3
+   89f0   02                      DB     OPLOD
+   89f1   01                      DB     1
+   89f2   00 06                   DW     (3 SHL 1)
+                        
+                        ;    125  opr  0   13
+   89f4   01                      DB     OPOPR
+   89f5   00                      DB     0
+   89f6   00 0d                   DW    13
+                        
+                        ;    126  jpc  0  139
+   89f8   07                      DB     OPJPC
+   89f9   00                      DB     0
+   89fa   8a 2c                   DW     PLPROG + (139 SHL 2)
+                        
+                        ;    127  stk  1    4
+   89fc   0c                      DB     OPSTK
+   89fd   01                      DB     1
+   89fe   00 08                   DW     (4 SHL 1)
+                        
+                        ;    128  lod  0    3
+   8a00   02                      DB     OPLOD
+   8a01   00                      DB     0
+   8a02   00 06                   DW     (3 SHL 1)
+                        
+                        ;    129  lod  0    4
+   8a04   02                      DB     OPLOD
+   8a05   00                      DB     0
+   8a06   00 08                   DW     (4 SHL 1)
+                        
+                        ;    130  stk  0    6
+   8a08   0c                      DB     OPSTK
+   8a09   00                      DB     0
+   8a0a   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    131  cal  1    3
+   8a0c   04                      DB     OPCAL
+   8a0d   01                      DB     1
+   8a0e   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;    132  lod  1    5
+   8a10   02                      DB     OPLOD
+   8a11   01                      DB     1
+   8a12   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    133  opr  0   18
+   8a14   01                      DB     OPOPR
+   8a15   00                      DB     0
+   8a16   00 12                   DW    18
+                        
+                        ;    134  lod  0    4
+   8a18   02                      DB     OPLOD
+   8a19   00                      DB     0
+   8a1a   00 08                   DW     (4 SHL 1)
+                        
+                        ;    135  lit  0    1
+   8a1c   00                      DB     OPLIT
+   8a1d   00                      DB     0
+   8a1e   00 01                   DW     1
+                        
+                        ;    136  opr  0    2
+   8a20   01                      DB     OPOPR
+   8a21   00                      DB     0
+   8a22   00 02                   DW     2
+                        
+                        ;    137  sto  0    4
+   8a24   03                      DB     OPSTO
+   8a25   00                      DB     0
+   8a26   00 08                   DW     (4 SHL 1)
+                        
+                        ;    138  jmp  0  123
+   8a28   06                      DB     OPJMP
+   8a29   00                      DB     0
+   8a2a   89 ec                   DW     PLPROG + (123 SHL 2)
+                        
+                        ;    139  lod  0    3
+   8a2c   02                      DB     OPLOD
+   8a2d   00                      DB     0
+   8a2e   00 06                   DW     (3 SHL 1)
+                        
+                        ;    140  lit  0    1
+   8a30   00                      DB     OPLIT
+   8a31   00                      DB     0
+   8a32   00 01                   DW     1
+                        
+                        ;    141  opr  0    2
+   8a34   01                      DB     OPOPR
+   8a35   00                      DB     0
+   8a36   00 02                   DW     2
+                        
+                        ;    142  sto  0    3
+   8a38   03                      DB     OPSTO
+   8a39   00                      DB     0
+   8a3a   00 06                   DW     (3 SHL 1)
+                        
+                        ;    143  jmp  0  117
+   8a3c   06                      DB     OPJMP
+   8a3d   00                      DB     0
+   8a3e   89 d4                   DW     PLPROG + (117 SHL 2)
+                        
+                        ;    144  stk  1    3
+   8a40   0c                      DB     OPSTK
+   8a41   01                      DB     1
+   8a42   00 06                   DW     (3 SHL 1)
+                        
+                        ;    145  lit  0    1
+   8a44   00                      DB     OPLIT
+   8a45   00                      DB     0
+   8a46   00 01                   DW     1
+                        
+                        ;    146  lit  0    1
+   8a48   00                      DB     OPLIT
+   8a49   00                      DB     0
+   8a4a   00 01                   DW     1
+                        
+                        ;    147  lit  0    1
+   8a4c   00                      DB     OPLIT
+   8a4d   00                      DB     0
+   8a4e   00 01                   DW     1
+                        
+                        ;    148  lit  0   11
+   8a50   00                      DB     OPLIT
+   8a51   00                      DB     0
+   8a52   00 0b                   DW    11
+                        
+                        ;    149  stk  0    7
+   8a54   0c                      DB     OPSTK
+   8a55   00                      DB     0
+   8a56   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    150  cal  1   44
+   8a58   04                      DB     OPCAL
+   8a59   01                      DB     1
+   8a5a   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    151  stk  1    3
+   8a5c   0c                      DB     OPSTK
+   8a5d   01                      DB     1
+   8a5e   00 06                   DW     (3 SHL 1)
+                        
+                        ;    152  lit  0   11
+   8a60   00                      DB     OPLIT
+   8a61   00                      DB     0
+   8a62   00 0b                   DW    11
+                        
+                        ;    153  lit  0    1
+   8a64   00                      DB     OPLIT
+   8a65   00                      DB     0
+   8a66   00 01                   DW     1
+                        
+                        ;    154  lit  0   11
+   8a68   00                      DB     OPLIT
+   8a69   00                      DB     0
+   8a6a   00 0b                   DW    11
+                        
+                        ;    155  lit  0   11
+   8a6c   00                      DB     OPLIT
+   8a6d   00                      DB     0
+   8a6e   00 0b                   DW    11
+                        
+                        ;    156  stk  0    7
+   8a70   0c                      DB     OPSTK
+   8a71   00                      DB     0
+   8a72   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    157  cal  1   44
+   8a74   04                      DB     OPCAL
+   8a75   01                      DB     1
+   8a76   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    158  stk  1    3
+   8a78   0c                      DB     OPSTK
+   8a79   01                      DB     1
+   8a7a   00 06                   DW     (3 SHL 1)
+                        
+                        ;    159  lit  0    1
+   8a7c   00                      DB     OPLIT
+   8a7d   00                      DB     0
+   8a7e   00 01                   DW     1
+                        
+                        ;    160  lit  0    1
+   8a80   00                      DB     OPLIT
+   8a81   00                      DB     0
+   8a82   00 01                   DW     1
+                        
+                        ;    161  lit  0   11
+   8a84   00                      DB     OPLIT
+   8a85   00                      DB     0
+   8a86   00 0b                   DW    11
+                        
+                        ;    162  lit  0    1
+   8a88   00                      DB     OPLIT
+   8a89   00                      DB     0
+   8a8a   00 01                   DW     1
+                        
+                        ;    163  stk  0    7
+   8a8c   0c                      DB     OPSTK
+   8a8d   00                      DB     0
+   8a8e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    164  cal  1   67
+   8a90   04                      DB     OPCAL
+   8a91   01                      DB     1
+   8a92   89 0c                   DW     PLPROG + (67 SHL 2)
+                        
+                        ;    165  stk  1    3
+   8a94   0c                      DB     OPSTK
+   8a95   01                      DB     1
+   8a96   00 06                   DW     (3 SHL 1)
+                        
+                        ;    166  lit  0    1
+   8a98   00                      DB     OPLIT
+   8a99   00                      DB     0
+   8a9a   00 01                   DW     1
+                        
+                        ;    167  lit  0   11
+   8a9c   00                      DB     OPLIT
+   8a9d   00                      DB     0
+   8a9e   00 0b                   DW    11
+                        
+                        ;    168  lit  0   11
+   8aa0   00                      DB     OPLIT
+   8aa1   00                      DB     0
+   8aa2   00 0b                   DW    11
+                        
+                        ;    169  lit  0   11
+   8aa4   00                      DB     OPLIT
+   8aa5   00                      DB     0
+   8aa6   00 0b                   DW    11
+                        
+                        ;    170  stk  0    7
+   8aa8   0c                      DB     OPSTK
+   8aa9   00                      DB     0
+   8aaa   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    171  cal  1   67
+   8aac   04                      DB     OPCAL
+   8aad   01                      DB     1
+   8aae   89 0c                   DW     PLPROG + (67 SHL 2)
+                        
+                        ;    172  lit  0    1
+   8ab0   00                      DB     OPLIT
+   8ab1   00                      DB     0
+   8ab2   00 01                   DW     1
+                        
+                        ;    173  sto  1   12
+   8ab4   03                      DB     OPSTO
+   8ab5   01                      DB     1
+   8ab6   00 18                   DW     (12 SHL 1)
+                        
+                        ;    174  lit  0    6
+   8ab8   00                      DB     OPLIT
+   8ab9   00                      DB     0
+   8aba   00 06                   DW     6
+                        
+                        ;    175  sto  1   13
+   8abc   03                      DB     OPSTO
+   8abd   01                      DB     1
+   8abe   00 1a                   DW     (13 SHL 1)
+                        
+                        ;    176  stk  1    4
+   8ac0   0c                      DB     OPSTK
+   8ac1   01                      DB     1
+   8ac2   00 08                   DW     (4 SHL 1)
+                        
+                        ;    177  lod  1   12
+   8ac4   02                      DB     OPLOD
+   8ac5   01                      DB     1
+   8ac6   00 18                   DW     (12 SHL 1)
+                        
+                        ;    178  lod  1   13
+   8ac8   02                      DB     OPLOD
+   8ac9   01                      DB     1
+   8aca   00 1a                   DW     (13 SHL 1)
+                        
+                        ;    179  stk  0    6
+   8acc   0c                      DB     OPSTK
+   8acd   00                      DB     0
+   8ace   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    180  cal  1    3
+   8ad0   04                      DB     OPCAL
+   8ad1   01                      DB     1
+   8ad2   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;    181  sto  1    9
+   8ad4   03                      DB     OPSTO
+   8ad5   01                      DB     1
+   8ad6   00 12                   DW     (9 SHL 1)
+                        
+                        ;    182  lod  1    9
+   8ad8   02                      DB     OPLOD
+   8ad9   01                      DB     1
+   8ada   00 12                   DW     (9 SHL 1)
+                        
+                        ;    183  lod  1    5
+   8adc   02                      DB     OPLOD
+   8add   01                      DB     1
+   8ade   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    184  opr  0   18
+   8ae0   01                      DB     OPOPR
+   8ae1   00                      DB     0
+   8ae2   00 12                   DW    18
+                        
+                        ;    185  lit  0   11
+   8ae4   00                      DB     OPLIT
+   8ae5   00                      DB     0
+   8ae6   00 0b                   DW    11
+                        
+                        ;    186  sto  1   14
+   8ae8   03                      DB     OPSTO
+   8ae9   01                      DB     1
+   8aea   00 1c                   DW     (14 SHL 1)
+                        
+                        ;    187  lit  0    6
+   8aec   00                      DB     OPLIT
+   8aed   00                      DB     0
+   8aee   00 06                   DW     6
+                        
+                        ;    188  sto  1   15
+   8af0   03                      DB     OPSTO
+   8af1   01                      DB     1
+   8af2   00 1e                   DW     (15 SHL 1)
+                        
+                        ;    189  stk  1    4
+   8af4   0c                      DB     OPSTK
+   8af5   01                      DB     1
+   8af6   00 08                   DW     (4 SHL 1)
+                        
+                        ;    190  lod  1   14
+   8af8   02                      DB     OPLOD
+   8af9   01                      DB     1
+   8afa   00 1c                   DW     (14 SHL 1)
+                        
+                        ;    191  lod  1   15
+   8afc   02                      DB     OPLOD
+   8afd   01                      DB     1
+   8afe   00 1e                   DW     (15 SHL 1)
+                        
+                        ;    192  stk  0    6
+   8b00   0c                      DB     OPSTK
+   8b01   00                      DB     0
+   8b02   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    193  cal  1    3
+   8b04   04                      DB     OPCAL
+   8b05   01                      DB     1
+   8b06   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;    194  sto  1   10
+   8b08   03                      DB     OPSTO
+   8b09   01                      DB     1
+   8b0a   00 14                   DW     (10 SHL 1)
+                        
+                        ;    195  lod  1   10
+   8b0c   02                      DB     OPLOD
+   8b0d   01                      DB     1
+   8b0e   00 14                   DW     (10 SHL 1)
+                        
+                        ;    196  lod  1    5
+   8b10   02                      DB     OPLOD
+   8b11   01                      DB     1
+   8b12   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    197  opr  0   18
+   8b14   01                      DB     OPOPR
+   8b15   00                      DB     0
+   8b16   00 12                   DW    18
+                        
+                        ;    198  stk  1    3
+   8b18   0c                      DB     OPSTK
+   8b19   01                      DB     1
+   8b1a   00 06                   DW     (3 SHL 1)
+                        
+                        ;    199  lit  0    3
+   8b1c   00                      DB     OPLIT
+   8b1d   00                      DB     0
+   8b1e   00 03                   DW     3
+                        
+                        ;    200  lit  0    1
+   8b20   00                      DB     OPLIT
+   8b21   00                      DB     0
+   8b22   00 01                   DW     1
+                        
+                        ;    201  lit  0    3
+   8b24   00                      DB     OPLIT
+   8b25   00                      DB     0
+   8b26   00 03                   DW     3
+                        
+                        ;    202  lit  0    7
+   8b28   00                      DB     OPLIT
+   8b29   00                      DB     0
+   8b2a   00 07                   DW     7
+                        
+                        ;    203  stk  0    7
+   8b2c   0c                      DB     OPSTK
+   8b2d   00                      DB     0
+   8b2e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    204  cal  1   44
+   8b30   04                      DB     OPCAL
+   8b31   01                      DB     1
+   8b32   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    205  stk  1    3
+   8b34   0c                      DB     OPSTK
+   8b35   01                      DB     1
+   8b36   00 06                   DW     (3 SHL 1)
+                        
+                        ;    206  lit  0    4
+   8b38   00                      DB     OPLIT
+   8b39   00                      DB     0
+   8b3a   00 04                   DW     4
+                        
+                        ;    207  lit  0    7
+   8b3c   00                      DB     OPLIT
+   8b3d   00                      DB     0
+   8b3e   00 07                   DW     7
+                        
+                        ;    208  lit  0    4
+   8b40   00                      DB     OPLIT
+   8b41   00                      DB     0
+   8b42   00 04                   DW     4
+                        
+                        ;    209  lit  0    9
+   8b44   00                      DB     OPLIT
+   8b45   00                      DB     0
+   8b46   00 09                   DW     9
+                        
+                        ;    210  stk  0    7
+   8b48   0c                      DB     OPSTK
+   8b49   00                      DB     0
+   8b4a   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    211  cal  1   44
+   8b4c   04                      DB     OPCAL
+   8b4d   01                      DB     1
+   8b4e   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    212  stk  1    3
+   8b50   0c                      DB     OPSTK
+   8b51   01                      DB     1
+   8b52   00 06                   DW     (3 SHL 1)
+                        
+                        ;    213  lit  0    5
+   8b54   00                      DB     OPLIT
+   8b55   00                      DB     0
+   8b56   00 05                   DW     5
+                        
+                        ;    214  lit  0    3
+   8b58   00                      DB     OPLIT
+   8b59   00                      DB     0
+   8b5a   00 03                   DW     3
+                        
+                        ;    215  lit  0    5
+   8b5c   00                      DB     OPLIT
+   8b5d   00                      DB     0
+   8b5e   00 05                   DW     5
+                        
+                        ;    216  lit  0    5
+   8b60   00                      DB     OPLIT
+   8b61   00                      DB     0
+   8b62   00 05                   DW     5
+                        
+                        ;    217  stk  0    7
+   8b64   0c                      DB     OPSTK
+   8b65   00                      DB     0
+   8b66   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    218  cal  1   44
+   8b68   04                      DB     OPCAL
+   8b69   01                      DB     1
+   8b6a   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    219  stk  1    3
+   8b6c   0c                      DB     OPSTK
+   8b6d   01                      DB     1
+   8b6e   00 06                   DW     (3 SHL 1)
+                        
+                        ;    220  lit  0    5
+   8b70   00                      DB     OPLIT
+   8b71   00                      DB     0
+   8b72   00 05                   DW     5
+                        
+                        ;    221  lit  0    7
+   8b74   00                      DB     OPLIT
+   8b75   00                      DB     0
+   8b76   00 07                   DW     7
+                        
+                        ;    222  lit  0    5
+   8b78   00                      DB     OPLIT
+   8b79   00                      DB     0
+   8b7a   00 05                   DW     5
+                        
+                        ;    223  lit  0    9
+   8b7c   00                      DB     OPLIT
+   8b7d   00                      DB     0
+   8b7e   00 09                   DW     9
+                        
+                        ;    224  stk  0    7
+   8b80   0c                      DB     OPSTK
+   8b81   00                      DB     0
+   8b82   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    225  cal  1   44
+   8b84   04                      DB     OPCAL
+   8b85   01                      DB     1
+   8b86   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    226  stk  1    3
+   8b88   0c                      DB     OPSTK
+   8b89   01                      DB     1
+   8b8a   00 06                   DW     (3 SHL 1)
+                        
+                        ;    227  lit  0    6
+   8b8c   00                      DB     OPLIT
+   8b8d   00                      DB     0
+   8b8e   00 06                   DW     6
+                        
+                        ;    228  lit  0    5
+   8b90   00                      DB     OPLIT
+   8b91   00                      DB     0
+   8b92   00 05                   DW     5
+                        
+                        ;    229  lit  0    6
+   8b94   00                      DB     OPLIT
+   8b95   00                      DB     0
+   8b96   00 06                   DW     6
+                        
+                        ;    230  lit  0    5
+   8b98   00                      DB     OPLIT
+   8b99   00                      DB     0
+   8b9a   00 05                   DW     5
+                        
+                        ;    231  stk  0    7
+   8b9c   0c                      DB     OPSTK
+   8b9d   00                      DB     0
+   8b9e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    232  cal  1   44
+   8ba0   04                      DB     OPCAL
+   8ba1   01                      DB     1
+   8ba2   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    233  stk  1    3
+   8ba4   0c                      DB     OPSTK
+   8ba5   01                      DB     1
+   8ba6   00 06                   DW     (3 SHL 1)
+                        
+                        ;    234  lit  0    6
+   8ba8   00                      DB     OPLIT
+   8ba9   00                      DB     0
+   8baa   00 06                   DW     6
+                        
+                        ;    235  lit  0    9
+   8bac   00                      DB     OPLIT
+   8bad   00                      DB     0
+   8bae   00 09                   DW     9
+                        
+                        ;    236  lit  0    6
+   8bb0   00                      DB     OPLIT
+   8bb1   00                      DB     0
+   8bb2   00 06                   DW     6
+                        
+                        ;    237  lit  0    9
+   8bb4   00                      DB     OPLIT
+   8bb5   00                      DB     0
+   8bb6   00 09                   DW     9
+                        
+                        ;    238  stk  0    7
+   8bb8   0c                      DB     OPSTK
+   8bb9   00                      DB     0
+   8bba   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    239  cal  1   44
+   8bbc   04                      DB     OPCAL
+   8bbd   01                      DB     1
+   8bbe   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    240  stk  1    3
+   8bc0   0c                      DB     OPSTK
+   8bc1   01                      DB     1
+   8bc2   00 06                   DW     (3 SHL 1)
+                        
+                        ;    241  lit  0    7
+   8bc4   00                      DB     OPLIT
+   8bc5   00                      DB     0
+   8bc6   00 07                   DW     7
+                        
+                        ;    242  lit  0    1
+   8bc8   00                      DB     OPLIT
+   8bc9   00                      DB     0
+   8bca   00 01                   DW     1
+                        
+                        ;    243  lit  0    7
+   8bcc   00                      DB     OPLIT
+   8bcd   00                      DB     0
+   8bce   00 07                   DW     7
+                        
+                        ;    244  lit  0    2
+   8bd0   00                      DB     OPLIT
+   8bd1   00                      DB     0
+   8bd2   00 02                   DW     2
+                        
+                        ;    245  stk  0    7
+   8bd4   0c                      DB     OPSTK
+   8bd5   00                      DB     0
+   8bd6   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    246  cal  1   44
+   8bd8   04                      DB     OPCAL
+   8bd9   01                      DB     1
+   8bda   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    247  stk  1    3
+   8bdc   0c                      DB     OPSTK
+   8bdd   01                      DB     1
+   8bde   00 06                   DW     (3 SHL 1)
+                        
+                        ;    248  lit  0    7
+   8be0   00                      DB     OPLIT
+   8be1   00                      DB     0
+   8be2   00 07                   DW     7
+                        
+                        ;    249  lit  0    5
+   8be4   00                      DB     OPLIT
+   8be5   00                      DB     0
+   8be6   00 05                   DW     5
+                        
+                        ;    250  lit  0    7
+   8be8   00                      DB     OPLIT
+   8be9   00                      DB     0
+   8bea   00 07                   DW     7
+                        
+                        ;    251  lit  0    7
+   8bec   00                      DB     OPLIT
+   8bed   00                      DB     0
+   8bee   00 07                   DW     7
+                        
+                        ;    252  stk  0    7
+   8bf0   0c                      DB     OPSTK
+   8bf1   00                      DB     0
+   8bf2   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    253  cal  1   44
+   8bf4   04                      DB     OPCAL
+   8bf5   01                      DB     1
+   8bf6   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    254  stk  1    3
+   8bf8   0c                      DB     OPSTK
+   8bf9   01                      DB     1
+   8bfa   00 06                   DW     (3 SHL 1)
+                        
+                        ;    255  lit  0    7
+   8bfc   00                      DB     OPLIT
+   8bfd   00                      DB     0
+   8bfe   00 07                   DW     7
+                        
+                        ;    256  lit  0    9
+   8c00   00                      DB     OPLIT
+   8c01   00                      DB     0
+   8c02   00 09                   DW     9
+                        
+                        ;    257  lit  0    7
+   8c04   00                      DB     OPLIT
+   8c05   00                      DB     0
+   8c06   00 07                   DW     7
+                        
+                        ;    258  lit  0    9
+   8c08   00                      DB     OPLIT
+   8c09   00                      DB     0
+   8c0a   00 09                   DW     9
+                        
+                        ;    259  stk  0    7
+   8c0c   0c                      DB     OPSTK
+   8c0d   00                      DB     0
+   8c0e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    260  cal  1   44
+   8c10   04                      DB     OPCAL
+   8c11   01                      DB     1
+   8c12   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    261  stk  1    3
+   8c14   0c                      DB     OPSTK
+   8c15   01                      DB     1
+   8c16   00 06                   DW     (3 SHL 1)
+                        
+                        ;    262  lit  0    8
+   8c18   00                      DB     OPLIT
+   8c19   00                      DB     0
+   8c1a   00 08                   DW     8
+                        
+                        ;    263  lit  0    5
+   8c1c   00                      DB     OPLIT
+   8c1d   00                      DB     0
+   8c1e   00 05                   DW     5
+                        
+                        ;    264  lit  0    8
+   8c20   00                      DB     OPLIT
+   8c21   00                      DB     0
+   8c22   00 08                   DW     8
+                        
+                        ;    265  lit  0    5
+   8c24   00                      DB     OPLIT
+   8c25   00                      DB     0
+   8c26   00 05                   DW     5
+                        
+                        ;    266  stk  0    7
+   8c28   0c                      DB     OPSTK
+   8c29   00                      DB     0
+   8c2a   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    267  cal  1   44
+   8c2c   04                      DB     OPCAL
+   8c2d   01                      DB     1
+   8c2e   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    268  stk  1    3
+   8c30   0c                      DB     OPSTK
+   8c31   01                      DB     1
+   8c32   00 06                   DW     (3 SHL 1)
+                        
+                        ;    269  lit  0    8
+   8c34   00                      DB     OPLIT
+   8c35   00                      DB     0
+   8c36   00 08                   DW     8
+                        
+                        ;    270  lit  0    9
+   8c38   00                      DB     OPLIT
+   8c39   00                      DB     0
+   8c3a   00 09                   DW     9
+                        
+                        ;    271  lit  0    8
+   8c3c   00                      DB     OPLIT
+   8c3d   00                      DB     0
+   8c3e   00 08                   DW     8
+                        
+                        ;    272  lit  0    9
+   8c40   00                      DB     OPLIT
+   8c41   00                      DB     0
+   8c42   00 09                   DW     9
+                        
+                        ;    273  stk  0    7
+   8c44   0c                      DB     OPSTK
+   8c45   00                      DB     0
+   8c46   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    274  cal  1   44
+   8c48   04                      DB     OPCAL
+   8c49   01                      DB     1
+   8c4a   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    275  stk  1    3
+   8c4c   0c                      DB     OPSTK
+   8c4d   01                      DB     1
+   8c4e   00 06                   DW     (3 SHL 1)
+                        
+                        ;    276  lit  0    8
+   8c50   00                      DB     OPLIT
+   8c51   00                      DB     0
+   8c52   00 08                   DW     8
+                        
+                        ;    277  lit  0    9
+   8c54   00                      DB     OPLIT
+   8c55   00                      DB     0
+   8c56   00 09                   DW     9
+                        
+                        ;    278  lit  0    8
+   8c58   00                      DB     OPLIT
+   8c59   00                      DB     0
+   8c5a   00 08                   DW     8
+                        
+                        ;    279  lit  0    9
+   8c5c   00                      DB     OPLIT
+   8c5d   00                      DB     0
+   8c5e   00 09                   DW     9
+                        
+                        ;    280  stk  0    7
+   8c60   0c                      DB     OPSTK
+   8c61   00                      DB     0
+   8c62   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    281  cal  1   44
+   8c64   04                      DB     OPCAL
+   8c65   01                      DB     1
+   8c66   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    282  stk  1    3
+   8c68   0c                      DB     OPSTK
+   8c69   01                      DB     1
+   8c6a   00 06                   DW     (3 SHL 1)
+                        
+                        ;    283  lit  0    9
+   8c6c   00                      DB     OPLIT
+   8c6d   00                      DB     0
+   8c6e   00 09                   DW     9
+                        
+                        ;    284  lit  0    3
+   8c70   00                      DB     OPLIT
+   8c71   00                      DB     0
+   8c72   00 03                   DW     3
+                        
+                        ;    285  lit  0    9
+   8c74   00                      DB     OPLIT
+   8c75   00                      DB     0
+   8c76   00 09                   DW     9
+                        
+                        ;    286  lit  0    3
+   8c78   00                      DB     OPLIT
+   8c79   00                      DB     0
+   8c7a   00 03                   DW     3
+                        
+                        ;    287  stk  0    7
+   8c7c   0c                      DB     OPSTK
+   8c7d   00                      DB     0
+   8c7e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    288  cal  1   44
+   8c80   04                      DB     OPCAL
+   8c81   01                      DB     1
+   8c82   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    289  stk  1    3
+   8c84   0c                      DB     OPSTK
+   8c85   01                      DB     1
+   8c86   00 06                   DW     (3 SHL 1)
+                        
+                        ;    290  lit  0    9
+   8c88   00                      DB     OPLIT
+   8c89   00                      DB     0
+   8c8a   00 09                   DW     9
+                        
+                        ;    291  lit  0    5
+   8c8c   00                      DB     OPLIT
+   8c8d   00                      DB     0
+   8c8e   00 05                   DW     5
+                        
+                        ;    292  lit  0    9
+   8c90   00                      DB     OPLIT
+   8c91   00                      DB     0
+   8c92   00 09                   DW     9
+                        
+                        ;    293  lit  0    7
+   8c94   00                      DB     OPLIT
+   8c95   00                      DB     0
+   8c96   00 07                   DW     7
+                        
+                        ;    294  stk  0    7
+   8c98   0c                      DB     OPSTK
+   8c99   00                      DB     0
+   8c9a   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    295  cal  1   44
+   8c9c   04                      DB     OPCAL
+   8c9d   01                      DB     1
+   8c9e   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    296  stk  1    3
+   8ca0   0c                      DB     OPSTK
+   8ca1   01                      DB     1
+   8ca2   00 06                   DW     (3 SHL 1)
+                        
+                        ;    297  lit  0    9
+   8ca4   00                      DB     OPLIT
+   8ca5   00                      DB     0
+   8ca6   00 09                   DW     9
+                        
+                        ;    298  lit  0    9
+   8ca8   00                      DB     OPLIT
+   8ca9   00                      DB     0
+   8caa   00 09                   DW     9
+                        
+                        ;    299  lit  0    9
+   8cac   00                      DB     OPLIT
+   8cad   00                      DB     0
+   8cae   00 09                   DW     9
+                        
+                        ;    300  lit  0    9
+   8cb0   00                      DB     OPLIT
+   8cb1   00                      DB     0
+   8cb2   00 09                   DW     9
+                        
+                        ;    301  stk  0    7
+   8cb4   0c                      DB     OPSTK
+   8cb5   00                      DB     0
+   8cb6   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    302  cal  1   44
+   8cb8   04                      DB     OPCAL
+   8cb9   01                      DB     1
+   8cba   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    303  stk  1    3
+   8cbc   0c                      DB     OPSTK
+   8cbd   01                      DB     1
+   8cbe   00 06                   DW     (3 SHL 1)
+                        
+                        ;    304  lit  0   10
+   8cc0   00                      DB     OPLIT
+   8cc1   00                      DB     0
+   8cc2   00 0a                   DW    10
+                        
+                        ;    305  lit  0    3
+   8cc4   00                      DB     OPLIT
+   8cc5   00                      DB     0
+   8cc6   00 03                   DW     3
+                        
+                        ;    306  lit  0   10
+   8cc8   00                      DB     OPLIT
+   8cc9   00                      DB     0
+   8cca   00 0a                   DW    10
+                        
+                        ;    307  lit  0    3
+   8ccc   00                      DB     OPLIT
+   8ccd   00                      DB     0
+   8cce   00 03                   DW     3
+                        
+                        ;    308  stk  0    7
+   8cd0   0c                      DB     OPSTK
+   8cd1   00                      DB     0
+   8cd2   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    309  cal  1   44
+   8cd4   04                      DB     OPCAL
+   8cd5   01                      DB     1
+   8cd6   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    310  stk  1    3
+   8cd8   0c                      DB     OPSTK
+   8cd9   01                      DB     1
+   8cda   00 06                   DW     (3 SHL 1)
+                        
+                        ;    311  lit  0   10
+   8cdc   00                      DB     OPLIT
+   8cdd   00                      DB     0
+   8cde   00 0a                   DW    10
+                        
+                        ;    312  lit  0    7
+   8ce0   00                      DB     OPLIT
+   8ce1   00                      DB     0
+   8ce2   00 07                   DW     7
+                        
+                        ;    313  lit  0   10
+   8ce4   00                      DB     OPLIT
+   8ce5   00                      DB     0
+   8ce6   00 0a                   DW    10
+                        
+                        ;    314  lit  0    7
+   8ce8   00                      DB     OPLIT
+   8ce9   00                      DB     0
+   8cea   00 07                   DW     7
+                        
+                        ;    315  stk  0    7
+   8cec   0c                      DB     OPSTK
+   8ced   00                      DB     0
+   8cee   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    316  cal  1   44
+   8cf0   04                      DB     OPCAL
+   8cf1   01                      DB     1
+   8cf2   88 b0                   DW     PLPROG + (44 SHL 2)
+                        
+                        ;    317  ret  0    0
+   8cf4   09                      DB     OPRET
+   8cf5   00                      DB     0
+   8cf6   00 00                   DW     0
+                        
+                        ;    318  jmp  0  319
+   8cf8   06                      DB     OPJMP
+   8cf9   00                      DB     0
+   8cfa   8c fc                   DW     PLPROG + (319 SHL 2)
+                        
+                        ;    319  int  0    7
+   8cfc   05                      DB     OPINT
+   8cfd   00                      DB     0
+   8cfe   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    320  lit  0    1
+   8d00   00                      DB     OPLIT
+   8d01   00                      DB     0
+   8d02   00 01                   DW     1
+                        
+                        ;    321  sto  0    3
+   8d04   03                      DB     OPSTO
+   8d05   00                      DB     0
+   8d06   00 06                   DW     (3 SHL 1)
+                        
+                        ;    322  lod  0    3
+   8d08   02                      DB     OPLOD
+   8d09   00                      DB     0
+   8d0a   00 06                   DW     (3 SHL 1)
+                        
+                        ;    323  lod  1    4
+   8d0c   02                      DB     OPLOD
+   8d0d   01                      DB     1
+   8d0e   00 08                   DW     (4 SHL 1)
+                        
+                        ;    324  opr  0   13
+   8d10   01                      DB     OPOPR
+   8d11   00                      DB     0
+   8d12   00 0d                   DW    13
+                        
+                        ;    325  jpc  0  366
+   8d14   07                      DB     OPJPC
+   8d15   00                      DB     0
+   8d16   8d b8                   DW     PLPROG + (366 SHL 2)
+                        
+                        ;    326  tot  1  111
+   8d18   0a                      DB     TXOUT
+   8d19   01                      DB     1
+   8d1a   90 5f                   DW     CONSTCHARTXT+111
+                        
+                        ;    327  lod  0    3
+   8d1c   02                      DB     OPLOD
+   8d1d   00                      DB     0
+   8d1e   00 06                   DW     (3 SHL 1)
+                        
+                        ;    328  tot  2    0
+   8d20   0a                      DB     TXOUT
+   8d21   02                      DB     2
+   8d22   00 00                   DW     0 ; uint16, on stack
+                        
+                        ;    329  tot  1  116
+   8d24   0a                      DB     TXOUT
+   8d25   01                      DB     1
+   8d26   90 64                   DW     CONSTCHARTXT+116
+                        
+                        ;    330  lit  0    1
+   8d28   00                      DB     OPLIT
+   8d29   00                      DB     0
+   8d2a   00 01                   DW     1
+                        
+                        ;    331  sto  0    4
+   8d2c   03                      DB     OPSTO
+   8d2d   00                      DB     0
+   8d2e   00 08                   DW     (4 SHL 1)
+                        
+                        ;    332  lod  0    4
+   8d30   02                      DB     OPLOD
+   8d31   00                      DB     0
+   8d32   00 08                   DW     (4 SHL 1)
+                        
+                        ;    333  lod  1    3
+   8d34   02                      DB     OPLOD
+   8d35   01                      DB     1
+   8d36   00 06                   DW     (3 SHL 1)
+                        
+                        ;    334  opr  0   13
+   8d38   01                      DB     OPOPR
+   8d39   00                      DB     0
+   8d3a   00 0d                   DW    13
+                        
+                        ;    335  jpc  0  360
+   8d3c   07                      DB     OPJPC
+   8d3d   00                      DB     0
+   8d3e   8d a0                   DW     PLPROG + (360 SHL 2)
+                        
+                        ;    336  stk  1    4
+   8d40   0c                      DB     OPSTK
+   8d41   01                      DB     1
+   8d42   00 08                   DW     (4 SHL 1)
+                        
+                        ;    337  lod  0    3
+   8d44   02                      DB     OPLOD
+   8d45   00                      DB     0
+   8d46   00 06                   DW     (3 SHL 1)
+                        
+                        ;    338  lod  0    4
+   8d48   02                      DB     OPLOD
+   8d49   00                      DB     0
+   8d4a   00 08                   DW     (4 SHL 1)
+                        
+                        ;    339  stk  0    6
+   8d4c   0c                      DB     OPSTK
+   8d4d   00                      DB     0
+   8d4e   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    340  cal  1    3
+   8d50   04                      DB     OPCAL
+   8d51   01                      DB     1
+   8d52   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;    341  sto  0    5
+   8d54   03                      DB     OPSTO
+   8d55   00                      DB     0
+   8d56   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    342  lod  0    5
+   8d58   02                      DB     OPLOD
+   8d59   00                      DB     0
+   8d5a   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    343  opr  0   17
+   8d5c   01                      DB     OPOPR
+   8d5d   00                      DB     0
+   8d5e   00 11                   DW    17
+                        
+                        ;    344  sto  0    5
+   8d60   03                      DB     OPSTO
+   8d61   00                      DB     0
+   8d62   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    345  lod  0    5
+   8d64   02                      DB     OPLOD
+   8d65   00                      DB     0
+   8d66   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    346  lod  1    7
+   8d68   02                      DB     OPLOD
+   8d69   01                      DB     1
+   8d6a   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    347  opr  0    8
+   8d6c   01                      DB     OPOPR
+   8d6d   00                      DB     0
+   8d6e   00 08                   DW     8
+                        
+                        ;    348  jpc  0  351
+   8d70   07                      DB     OPJPC
+   8d71   00                      DB     0
+   8d72   8d 7c                   DW     PLPROG + (351 SHL 2)
+                        
+                        ;    349  lod  1    5
+   8d74   02                      DB     OPLOD
+   8d75   01                      DB     1
+   8d76   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    350  sto  0    5
+   8d78   03                      DB     OPSTO
+   8d79   00                      DB     0
+   8d7a   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    351  lod  0    5
+   8d7c   02                      DB     OPLOD
+   8d7d   00                      DB     0
+   8d7e   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    352  sto  0    6
+   8d80   03                      DB     OPSTO
+   8d81   00                      DB     0
+   8d82   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    353  lod  0    6
+   8d84   02                      DB     OPLOD
+   8d85   00                      DB     0
+   8d86   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    354  tot  3    0
+   8d88   0a                      DB     TXOUT
+   8d89   03                      DB     3
+   8d8a   00 00                   DW     0 ; uint16, on stack
+                        
+                        ;    355  lod  0    4
+   8d8c   02                      DB     OPLOD
+   8d8d   00                      DB     0
+   8d8e   00 08                   DW     (4 SHL 1)
+                        
+                        ;    356  lit  0    1
+   8d90   00                      DB     OPLIT
+   8d91   00                      DB     0
+   8d92   00 01                   DW     1
+                        
+                        ;    357  opr  0    2
+   8d94   01                      DB     OPOPR
+   8d95   00                      DB     0
+   8d96   00 02                   DW     2
+                        
+                        ;    358  sto  0    4
+   8d98   03                      DB     OPSTO
+   8d99   00                      DB     0
+   8d9a   00 08                   DW     (4 SHL 1)
+                        
+                        ;    359  jmp  0  332
+   8d9c   06                      DB     OPJMP
+   8d9d   00                      DB     0
+   8d9e   8d 30                   DW     PLPROG + (332 SHL 2)
+                        
+                        ;    360  tot  1    0
+   8da0   0a                      DB     TXOUT
+   8da1   01                      DB     1
+   8da2   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    361  lod  0    3
+   8da4   02                      DB     OPLOD
+   8da5   00                      DB     0
+   8da6   00 06                   DW     (3 SHL 1)
+                        
+                        ;    362  lit  0    1
+   8da8   00                      DB     OPLIT
+   8da9   00                      DB     0
+   8daa   00 01                   DW     1
+                        
+                        ;    363  opr  0    2
+   8dac   01                      DB     OPOPR
+   8dad   00                      DB     0
+   8dae   00 02                   DW     2
+                        
+                        ;    364  sto  0    3
+   8db0   03                      DB     OPSTO
+   8db1   00                      DB     0
+   8db2   00 06                   DW     (3 SHL 1)
+                        
+                        ;    365  jmp  0  322
+   8db4   06                      DB     OPJMP
+   8db5   00                      DB     0
+   8db6   8d 08                   DW     PLPROG + (322 SHL 2)
+                        
+                        ;    366  ret  0    0
+   8db8   09                      DB     OPRET
+   8db9   00                      DB     0
+   8dba   00 00                   DW     0
+                        
+                        ;    367  jmp  0  368
+   8dbc   06                      DB     OPJMP
+   8dbd   00                      DB     0
+   8dbe   8d c0                   DW     PLPROG + (368 SHL 2)
+                        
+                        ;    368  int  0    8
+   8dc0   05                      DB     OPINT
+   8dc1   00                      DB     0
+   8dc2   00 10                   DW     (8 SHL 1)
+                        
+                        ;    369  lit  0    0
+   8dc4   00                      DB     OPLIT
+   8dc5   00                      DB     0
+   8dc6   00 00                   DW     0
+                        
+                        ;    370  sto  0    6
+   8dc8   03                      DB     OPSTO
+   8dc9   00                      DB     0
+   8dca   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    371  lod  0    4
+   8dcc   02                      DB     OPLOD
+   8dcd   00                      DB     0
+   8dce   00 08                   DW     (4 SHL 1)
+                        
+                        ;    372  lit  0    1
+   8dd0   00                      DB     OPLIT
+   8dd1   00                      DB     0
+   8dd2   00 01                   DW     1
+                        
+                        ;    373  opr  0   11
+   8dd4   01                      DB     OPOPR
+   8dd5   00                      DB     0
+   8dd6   00 0b                   DW    11
+                        
+                        ;    374  lod  0    4
+   8dd8   02                      DB     OPLOD
+   8dd9   00                      DB     0
+   8dda   00 08                   DW     (4 SHL 1)
+                        
+                        ;    375  lod  1    4
+   8ddc   02                      DB     OPLOD
+   8ddd   01                      DB     1
+   8dde   00 08                   DW     (4 SHL 1)
+                        
+                        ;    376  opr  0   13
+   8de0   01                      DB     OPOPR
+   8de1   00                      DB     0
+   8de2   00 0d                   DW    13
+                        
+                        ;    377  opr  0   14
+   8de4   01                      DB     OPOPR
+   8de5   00                      DB     0
+   8de6   00 0e                   DW    14
+                        
+                        ;    378  lod  0    5
+   8de8   02                      DB     OPLOD
+   8de9   00                      DB     0
+   8dea   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    379  lit  0    1
+   8dec   00                      DB     OPLIT
+   8ded   00                      DB     0
+   8dee   00 01                   DW     1
+                        
+                        ;    380  opr  0   11
+   8df0   01                      DB     OPOPR
+   8df1   00                      DB     0
+   8df2   00 0b                   DW    11
+                        
+                        ;    381  opr  0   14
+   8df4   01                      DB     OPOPR
+   8df5   00                      DB     0
+   8df6   00 0e                   DW    14
+                        
+                        ;    382  lod  0    5
+   8df8   02                      DB     OPLOD
+   8df9   00                      DB     0
+   8dfa   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    383  lod  1    3
+   8dfc   02                      DB     OPLOD
+   8dfd   01                      DB     1
+   8dfe   00 06                   DW     (3 SHL 1)
+                        
+                        ;    384  opr  0   13
+   8e00   01                      DB     OPOPR
+   8e01   00                      DB     0
+   8e02   00 0d                   DW    13
+                        
+                        ;    385  opr  0   14
+   8e04   01                      DB     OPOPR
+   8e05   00                      DB     0
+   8e06   00 0e                   DW    14
+                        
+                        ;    386  jpc  0  467
+   8e08   07                      DB     OPJPC
+   8e09   00                      DB     0
+   8e0a   8f 4c                   DW     PLPROG + (467 SHL 2)
+                        
+                        ;    387  stk  1    4
+   8e0c   0c                      DB     OPSTK
+   8e0d   01                      DB     1
+   8e0e   00 08                   DW     (4 SHL 1)
+                        
+                        ;    388  lod  0    4
+   8e10   02                      DB     OPLOD
+   8e11   00                      DB     0
+   8e12   00 08                   DW     (4 SHL 1)
+                        
+                        ;    389  lod  0    5
+   8e14   02                      DB     OPLOD
+   8e15   00                      DB     0
+   8e16   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    390  stk  0    6
+   8e18   0c                      DB     OPSTK
+   8e19   00                      DB     0
+   8e1a   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    391  cal  1    3
+   8e1c   04                      DB     OPCAL
+   8e1d   01                      DB     1
+   8e1e   88 0c                   DW     PLPROG + (3 SHL 2)
+                        
+                        ;    392  sto  0    7
+   8e20   03                      DB     OPSTO
+   8e21   00                      DB     0
+   8e22   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    393  lod  0    7
+   8e24   02                      DB     OPLOD
+   8e25   00                      DB     0
+   8e26   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    394  opr  0   17
+   8e28   01                      DB     OPOPR
+   8e29   00                      DB     0
+   8e2a   00 11                   DW    17
+                        
+                        ;    395  lod  1    5
+   8e2c   02                      DB     OPLOD
+   8e2d   01                      DB     1
+   8e2e   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    396  opr  0    8
+   8e30   01                      DB     OPOPR
+   8e31   00                      DB     0
+   8e32   00 08                   DW     8
+                        
+                        ;    397  jpc  0  467
+   8e34   07                      DB     OPJPC
+   8e35   00                      DB     0
+   8e36   8f 4c                   DW     PLPROG + (467 SHL 2)
+                        
+                        ;    398  lod  0    7
+   8e38   02                      DB     OPLOD
+   8e39   00                      DB     0
+   8e3a   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    399  lod  1    7
+   8e3c   02                      DB     OPLOD
+   8e3d   01                      DB     1
+   8e3e   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    400  opr  0   18
+   8e40   01                      DB     OPOPR
+   8e41   00                      DB     0
+   8e42   00 12                   DW    18
+                        
+                        ;    401  lod  0    4
+   8e44   02                      DB     OPLOD
+   8e45   00                      DB     0
+   8e46   00 08                   DW     (4 SHL 1)
+                        
+                        ;    402  lod  1   14
+   8e48   02                      DB     OPLOD
+   8e49   01                      DB     1
+   8e4a   00 1c                   DW     (14 SHL 1)
+                        
+                        ;    403  opr  0    8
+   8e4c   01                      DB     OPOPR
+   8e4d   00                      DB     0
+   8e4e   00 08                   DW     8
+                        
+                        ;    404  lod  0    5
+   8e50   02                      DB     OPLOD
+   8e51   00                      DB     0
+   8e52   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    405  lod  1   15
+   8e54   02                      DB     OPLOD
+   8e55   01                      DB     1
+   8e56   00 1e                   DW     (15 SHL 1)
+                        
+                        ;    406  opr  0    8
+   8e58   01                      DB     OPOPR
+   8e59   00                      DB     0
+   8e5a   00 08                   DW     8
+                        
+                        ;    407  opr  0   14
+   8e5c   01                      DB     OPOPR
+   8e5d   00                      DB     0
+   8e5e   00 0e                   DW    14
+                        
+                        ;    408  jpc  0  412
+   8e60   07                      DB     OPJPC
+   8e61   00                      DB     0
+   8e62   8e 70                   DW     PLPROG + (412 SHL 2)
+                        
+                        ;    409  lit  0    1
+   8e64   00                      DB     OPLIT
+   8e65   00                      DB     0
+   8e66   00 01                   DW     1
+                        
+                        ;    410  sto  0    6
+   8e68   03                      DB     OPSTO
+   8e69   00                      DB     0
+   8e6a   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    411  jmp  0  460
+   8e6c   06                      DB     OPJMP
+   8e6d   00                      DB     0
+   8e6e   8f 30                   DW     PLPROG + (460 SHL 2)
+                        
+                        ;    412  lod  0    6
+   8e70   02                      DB     OPLOD
+   8e71   00                      DB     0
+   8e72   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    413  lit  0    0
+   8e74   00                      DB     OPLIT
+   8e75   00                      DB     0
+   8e76   00 00                   DW     0
+                        
+                        ;    414  opr  0    8
+   8e78   01                      DB     OPOPR
+   8e79   00                      DB     0
+   8e7a   00 08                   DW     8
+                        
+                        ;    415  jpc  0  424
+   8e7c   07                      DB     OPJPC
+   8e7d   00                      DB     0
+   8e7e   8e a0                   DW     PLPROG + (424 SHL 2)
+                        
+                        ;    416  stk  1    4
+   8e80   0c                      DB     OPSTK
+   8e81   01                      DB     1
+   8e82   00 08                   DW     (4 SHL 1)
+                        
+                        ;    417  lod  0    4
+   8e84   02                      DB     OPLOD
+   8e85   00                      DB     0
+   8e86   00 08                   DW     (4 SHL 1)
+                        
+                        ;    418  lit  0    1
+   8e88   00                      DB     OPLIT
+   8e89   00                      DB     0
+   8e8a   00 01                   DW     1
+                        
+                        ;    419  opr  0    3
+   8e8c   01                      DB     OPOPR
+   8e8d   00                      DB     0
+   8e8e   00 03                   DW     3
+                        
+                        ;    420  lod  0    5
+   8e90   02                      DB     OPLOD
+   8e91   00                      DB     0
+   8e92   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    421  stk  0    6
+   8e94   0c                      DB     OPSTK
+   8e95   00                      DB     0
+   8e96   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    422  cal  1  368
+   8e98   04                      DB     OPCAL
+   8e99   01                      DB     1
+   8e9a   8d c0                   DW     PLPROG + (368 SHL 2)
+                        
+                        ;    423  sto  0    6
+   8e9c   03                      DB     OPSTO
+   8e9d   00                      DB     0
+   8e9e   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    424  lod  0    6
+   8ea0   02                      DB     OPLOD
+   8ea1   00                      DB     0
+   8ea2   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    425  lit  0    0
+   8ea4   00                      DB     OPLIT
+   8ea5   00                      DB     0
+   8ea6   00 00                   DW     0
+                        
+                        ;    426  opr  0    8
+   8ea8   01                      DB     OPOPR
+   8ea9   00                      DB     0
+   8eaa   00 08                   DW     8
+                        
+                        ;    427  jpc  0  436
+   8eac   07                      DB     OPJPC
+   8ead   00                      DB     0
+   8eae   8e d0                   DW     PLPROG + (436 SHL 2)
+                        
+                        ;    428  stk  1    4
+   8eb0   0c                      DB     OPSTK
+   8eb1   01                      DB     1
+   8eb2   00 08                   DW     (4 SHL 1)
+                        
+                        ;    429  lod  0    4
+   8eb4   02                      DB     OPLOD
+   8eb5   00                      DB     0
+   8eb6   00 08                   DW     (4 SHL 1)
+                        
+                        ;    430  lod  0    5
+   8eb8   02                      DB     OPLOD
+   8eb9   00                      DB     0
+   8eba   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    431  lit  0    1
+   8ebc   00                      DB     OPLIT
+   8ebd   00                      DB     0
+   8ebe   00 01                   DW     1
+                        
+                        ;    432  opr  0    3
+   8ec0   01                      DB     OPOPR
+   8ec1   00                      DB     0
+   8ec2   00 03                   DW     3
+                        
+                        ;    433  stk  0    6
+   8ec4   0c                      DB     OPSTK
+   8ec5   00                      DB     0
+   8ec6   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    434  cal  1  368
+   8ec8   04                      DB     OPCAL
+   8ec9   01                      DB     1
+   8eca   8d c0                   DW     PLPROG + (368 SHL 2)
+                        
+                        ;    435  sto  0    6
+   8ecc   03                      DB     OPSTO
+   8ecd   00                      DB     0
+   8ece   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    436  lod  0    6
+   8ed0   02                      DB     OPLOD
+   8ed1   00                      DB     0
+   8ed2   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    437  lit  0    0
+   8ed4   00                      DB     OPLIT
+   8ed5   00                      DB     0
+   8ed6   00 00                   DW     0
+                        
+                        ;    438  opr  0    8
+   8ed8   01                      DB     OPOPR
+   8ed9   00                      DB     0
+   8eda   00 08                   DW     8
+                        
+                        ;    439  jpc  0  448
+   8edc   07                      DB     OPJPC
+   8edd   00                      DB     0
+   8ede   8f 00                   DW     PLPROG + (448 SHL 2)
+                        
+                        ;    440  stk  1    4
+   8ee0   0c                      DB     OPSTK
+   8ee1   01                      DB     1
+   8ee2   00 08                   DW     (4 SHL 1)
+                        
+                        ;    441  lod  0    4
+   8ee4   02                      DB     OPLOD
+   8ee5   00                      DB     0
+   8ee6   00 08                   DW     (4 SHL 1)
+                        
+                        ;    442  lit  0    1
+   8ee8   00                      DB     OPLIT
+   8ee9   00                      DB     0
+   8eea   00 01                   DW     1
+                        
+                        ;    443  opr  0    2
+   8eec   01                      DB     OPOPR
+   8eed   00                      DB     0
+   8eee   00 02                   DW     2
+                        
+                        ;    444  lod  0    5
+   8ef0   02                      DB     OPLOD
+   8ef1   00                      DB     0
+   8ef2   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    445  stk  0    6
+   8ef4   0c                      DB     OPSTK
+   8ef5   00                      DB     0
+   8ef6   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    446  cal  1  368
+   8ef8   04                      DB     OPCAL
+   8ef9   01                      DB     1
+   8efa   8d c0                   DW     PLPROG + (368 SHL 2)
+                        
+                        ;    447  sto  0    6
+   8efc   03                      DB     OPSTO
+   8efd   00                      DB     0
+   8efe   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    448  lod  0    6
+   8f00   02                      DB     OPLOD
+   8f01   00                      DB     0
+   8f02   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    449  lit  0    0
+   8f04   00                      DB     OPLIT
+   8f05   00                      DB     0
+   8f06   00 00                   DW     0
+                        
+                        ;    450  opr  0    8
+   8f08   01                      DB     OPOPR
+   8f09   00                      DB     0
+   8f0a   00 08                   DW     8
+                        
+                        ;    451  jpc  0  460
+   8f0c   07                      DB     OPJPC
+   8f0d   00                      DB     0
+   8f0e   8f 30                   DW     PLPROG + (460 SHL 2)
+                        
+                        ;    452  stk  1    4
+   8f10   0c                      DB     OPSTK
+   8f11   01                      DB     1
+   8f12   00 08                   DW     (4 SHL 1)
+                        
+                        ;    453  lod  0    4
+   8f14   02                      DB     OPLOD
+   8f15   00                      DB     0
+   8f16   00 08                   DW     (4 SHL 1)
+                        
+                        ;    454  lod  0    5
+   8f18   02                      DB     OPLOD
+   8f19   00                      DB     0
+   8f1a   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    455  lit  0    1
+   8f1c   00                      DB     OPLIT
+   8f1d   00                      DB     0
+   8f1e   00 01                   DW     1
+                        
+                        ;    456  opr  0    2
+   8f20   01                      DB     OPOPR
+   8f21   00                      DB     0
+   8f22   00 02                   DW     2
+                        
+                        ;    457  stk  0    6
+   8f24   0c                      DB     OPSTK
+   8f25   00                      DB     0
+   8f26   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    458  cal  1  368
+   8f28   04                      DB     OPCAL
+   8f29   01                      DB     1
+   8f2a   8d c0                   DW     PLPROG + (368 SHL 2)
+                        
+                        ;    459  sto  0    6
+   8f2c   03                      DB     OPSTO
+   8f2d   00                      DB     0
+   8f2e   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    460  lod  0    6
+   8f30   02                      DB     OPLOD
+   8f31   00                      DB     0
+   8f32   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    461  lit  0    1
+   8f34   00                      DB     OPLIT
+   8f35   00                      DB     0
+   8f36   00 01                   DW     1
+                        
+                        ;    462  opr  0    8
+   8f38   01                      DB     OPOPR
+   8f39   00                      DB     0
+   8f3a   00 08                   DW     8
+                        
+                        ;    463  jpc  0  467
+   8f3c   07                      DB     OPJPC
+   8f3d   00                      DB     0
+   8f3e   8f 4c                   DW     PLPROG + (467 SHL 2)
+                        
+                        ;    464  lod  0    7
+   8f40   02                      DB     OPLOD
+   8f41   00                      DB     0
+   8f42   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    465  lod  1    8
+   8f44   02                      DB     OPLOD
+   8f45   01                      DB     1
+   8f46   00 10                   DW     (8 SHL 1)
+                        
+                        ;    466  opr  0   18
+   8f48   01                      DB     OPOPR
+   8f49   00                      DB     0
+   8f4a   00 12                   DW    18
+                        
+                        ;    467  lod  0    6
+   8f4c   02                      DB     OPLOD
+   8f4d   00                      DB     0
+   8f4e   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    468  sto  0    3
+   8f50   03                      DB     OPSTO
+   8f51   00                      DB     0
+   8f52   00 06                   DW     (3 SHL 1)
+                        
+                        ;    469  ret  1    0
+   8f54   09                      DB     OPRET
+   8f55   01                      DB     1
+   8f56   00 00                   DW     0
+                        
+                        ;    470  int  0   18
+   8f58   05                      DB     OPINT
+   8f59   00                      DB     0
+   8f5a   00 24                   DW     (18 SHL 1)
+                        
+                        ;    471  lit  0  800
+   8f5c   00                      DB     OPLIT
+   8f5d   00                      DB     0
+   8f5e   03 20                   DW   800
+                        
+                        ;    472  sto  0   16
+   8f60   03                      DB     OPSTO
+   8f61   00                      DB     0
+   8f62   00 20                   DW     (16 SHL 1)
+                        
+                        ;    473  lit  0   32
+   8f64   00                      DB     OPLIT
+   8f65   00                      DB     0
+   8f66   00 20                   DW    32
+                        
+                        ;    474  sto  0    5
+   8f68   03                      DB     OPSTO
+   8f69   00                      DB     0
+   8f6a   00 0a                   DW     (5 SHL 1)
+                        
+                        ;    475  lit  0   35
+   8f6c   00                      DB     OPLIT
+   8f6d   00                      DB     0
+   8f6e   00 23                   DW    35
+                        
+                        ;    476  sto  0    6
+   8f70   03                      DB     OPSTO
+   8f71   00                      DB     0
+   8f72   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    477  lit  0   46
+   8f74   00                      DB     OPLIT
+   8f75   00                      DB     0
+   8f76   00 2e                   DW    46
+                        
+                        ;    478  sto  0    7
+   8f78   03                      DB     OPSTO
+   8f79   00                      DB     0
+   8f7a   00 0e                   DW     (7 SHL 1)
+                        
+                        ;    479  lit  0  111
+   8f7c   00                      DB     OPLIT
+   8f7d   00                      DB     0
+   8f7e   00 6f                   DW   111
+                        
+                        ;    480  sto  0    8
+   8f80   03                      DB     OPSTO
+   8f81   00                      DB     0
+   8f82   00 10                   DW     (8 SHL 1)
+                        
+                        ;    481  lit  040960
+   8f84   00                      DB     OPLIT
+   8f85   00                      DB     0
+   8f86   a0 00                   DW 40960
+                        
+                        ;    482  sto  0   17
+   8f88   03                      DB     OPSTO
+   8f89   00                      DB     0
+   8f8a   00 22                   DW     (17 SHL 1)
+                        
+                        ;    483  tot  1  126
+   8f8c   0a                      DB     TXOUT
+   8f8d   01                      DB     1
+   8f8e   90 6e                   DW     CONSTCHARTXT+126
+                        
+                        ;    484  tot  1    0
+   8f90   0a                      DB     TXOUT
+   8f91   01                      DB     1
+   8f92   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    485  cal  0   90
+   8f94   04                      DB     OPCAL
+   8f95   00                      DB     0
+   8f96   89 68                   DW     PLPROG + (90 SHL 2)
+                        
+                        ;    486  tot  1  140
+   8f98   0a                      DB     TXOUT
+   8f99   01                      DB     1
+   8f9a   90 7c                   DW     CONSTCHARTXT+140
+                        
+                        ;    487  tot  1    0
+   8f9c   0a                      DB     TXOUT
+   8f9d   01                      DB     1
+   8f9e   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    488  cal  0  319
+   8fa0   04                      DB     OPCAL
+   8fa1   00                      DB     0
+   8fa2   8c fc                   DW     PLPROG + (319 SHL 2)
+                        
+                        ;    489  tot  1  155
+   8fa4   0a                      DB     TXOUT
+   8fa5   01                      DB     1
+   8fa6   90 8b                   DW     CONSTCHARTXT+155
+                        
+                        ;    490  tot  1    0
+   8fa8   0a                      DB     TXOUT
+   8fa9   01                      DB     1
+   8faa   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    491  stk  1    4
+   8fac   0c                      DB     OPSTK
+   8fad   01                      DB     1
+   8fae   00 08                   DW     (4 SHL 1)
+                        
+                        ;    492  lod  0   12
+   8fb0   02                      DB     OPLOD
+   8fb1   00                      DB     0
+   8fb2   00 18                   DW     (12 SHL 1)
+                        
+                        ;    493  lod  0   13
+   8fb4   02                      DB     OPLOD
+   8fb5   00                      DB     0
+   8fb6   00 1a                   DW     (13 SHL 1)
+                        
+                        ;    494  stk  0    6
+   8fb8   0c                      DB     OPSTK
+   8fb9   00                      DB     0
+   8fba   00 0c                   DW     (6 SHL 1)
+                        
+                        ;    495  cal  0  368
+   8fbc   04                      DB     OPCAL
+   8fbd   00                      DB     0
+   8fbe   8d c0                   DW     PLPROG + (368 SHL 2)
+                        
+                        ;    496  sto  0   11
+   8fc0   03                      DB     OPSTO
+   8fc1   00                      DB     0
+   8fc2   00 16                   DW     (11 SHL 1)
+                        
+                        ;    497  lod  0   11
+   8fc4   02                      DB     OPLOD
+   8fc5   00                      DB     0
+   8fc6   00 16                   DW     (11 SHL 1)
+                        
+                        ;    498  lit  0    1
+   8fc8   00                      DB     OPLIT
+   8fc9   00                      DB     0
+   8fca   00 01                   DW     1
+                        
+                        ;    499  opr  0    8
+   8fcc   01                      DB     OPOPR
+   8fcd   00                      DB     0
+   8fce   00 08                   DW     8
+                        
+                        ;    500  jpc  0  504
+   8fd0   07                      DB     OPJPC
+   8fd1   00                      DB     0
+   8fd2   8f e0                   DW     PLPROG + (504 SHL 2)
+                        
+                        ;    501  tot  1  166
+   8fd4   0a                      DB     TXOUT
+   8fd5   01                      DB     1
+   8fd6   90 96                   DW     CONSTCHARTXT+166
+                        
+                        ;    502  tot  1    0
+   8fd8   0a                      DB     TXOUT
+   8fd9   01                      DB     1
+   8fda   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    503  jmp  0  506
+   8fdc   06                      DB     OPJMP
+   8fdd   00                      DB     0
+   8fde   8f e8                   DW     PLPROG + (506 SHL 2)
+                        
+                        ;    504  tot  1  173
+   8fe0   0a                      DB     TXOUT
+   8fe1   01                      DB     1
+   8fe2   90 9d                   DW     CONSTCHARTXT+173
+                        
+                        ;    505  tot  1    0
+   8fe4   0a                      DB     TXOUT
+   8fe5   01                      DB     1
+   8fe6   8f f0                   DW     CONSTCHARTXT+0
+                        
+                        ;    506  cal  0  319
+   8fe8   04                      DB     OPCAL
+   8fe9   00                      DB     0
+   8fea   8c fc                   DW     PLPROG + (319 SHL 2)
+                        
+                        ;    507  xit  0    0
+   8fec   08                      DB     OPXIT
+   8fed   00                      DB     0
+   8fee   00 00                   DW     0
+                        
+   8ff0                 CONSTCHARTXT
+   8ff0   0d                      DB          13    ;  
+   8ff1   0a                      DB          10    ;  
+                        
+   8ff2   00                      DB           0    ;     8ff3   72                      DB         114    ;  r
+   8ff4   6f                      DB         111    ;  o
+   8ff5   77                      DB         119    ;  w
+   8ff6   20                      DB          32    ;   
+   8ff7   6f                      DB         111    ;  o
+   8ff8   75                      DB         117    ;  u
+   8ff9   74                      DB         116    ;  t
+   8ffa   20                      DB          32    ;   
+   8ffb   6f                      DB         111    ;  o
+   8ffc   66                      DB         102    ;  f
+   8ffd   20                      DB          32    ;   
+   8ffe   62                      DB          98    ;  b
+   8fff   6f                      DB         111    ;  o
+   9000   75                      DB         117    ;  u
+   9001   6e                      DB         110    ;  n
+   9002   64                      DB         100    ;  d
+   9003   73                      DB         115    ;  s
+   9004   20                      DB          32    ;   
+   9005   00                      DB           0    ;     9006   63                      DB          99    ;  c
+   9007   6f                      DB         111    ;  o
+   9008   6c                      DB         108    ;  l
+   9009   20                      DB          32    ;   
+   900a   6f                      DB         111    ;  o
+   900b   75                      DB         117    ;  u
+   900c   74                      DB         116    ;  t
+   900d   20                      DB          32    ;   
+   900e   6f                      DB         111    ;  o
+   900f   66                      DB         102    ;  f
+   9010   20                      DB          32    ;   
+   9011   62                      DB          98    ;  b
+   9012   6f                      DB         111    ;  o
+   9013   75                      DB         117    ;  u
+   9014   6e                      DB         110    ;  n
+   9015   64                      DB         100    ;  d
+   9016   73                      DB         115    ;  s
+   9017   20                      DB          32    ;   
+   9018   00                      DB           0    ;     9019   6d                      DB         109    ;  m
+   901a   61                      DB          97    ;  a
+   901b   78                      DB         120    ;  x
+   901c   63                      DB          99    ;  c
+   901d   65                      DB         101    ;  e
+   901e   6c                      DB         108    ;  l
+   901f   6c                      DB         108    ;  l
+   9020   63                      DB          99    ;  c
+   9021   6f                      DB         111    ;  o
+   9022   75                      DB         117    ;  u
+   9023   6e                      DB         110    ;  n
+   9024   74                      DB         116    ;  t
+   9025   20                      DB          32    ;   
+   9026   00                      DB           0    ;     9027   20                      DB          32    ;   
+   9028   61                      DB          97    ;  a
+   9029   6e                      DB         110    ;  n
+   902a   64                      DB         100    ;  d
+   902b   20                      DB          32    ;   
+   902c   77                      DB         119    ;  w
+   902d   65                      DB         101    ;  e
+   902e   20                      DB          32    ;   
+   902f   68                      DB         104    ;  h
+   9030   61                      DB          97    ;  a
+   9031   76                      DB         118    ;  v
+   9032   65                      DB         101    ;  e
+   9033   20                      DB          32    ;   
+   9034   00                      DB           0    ;     9035   4d                      DB          77    ;  M
+   9036   41                      DB          65    ;  A
+   9037   4b                      DB          75    ;  K
+   9038   45                      DB          69    ;  E
+   9039   20                      DB          32    ;   
+   903a   4d                      DB          77    ;  M
+   903b   41                      DB          65    ;  A
+   903c   54                      DB          84    ;  T
+   903d   52                      DB          82    ;  R
+   903e   49                      DB          73    ;  I
+   903f   58                      DB          88    ;  X
+   9040   20                      DB          32    ;   
+   9041   4c                      DB          76    ;  L
+   9042   41                      DB          65    ;  A
+   9043   52                      DB          82    ;  R
+   9044   47                      DB          71    ;  G
+   9045   45                      DB          69    ;  E
+   9046   52                      DB          82    ;  R
+   9047   00                      DB           0    ;     9048   77                      DB         119    ;  w
+   9049   69                      DB         105    ;  i
+   904a   74                      DB         116    ;  t
+   904b   68                      DB         104    ;  h
+   904c   69                      DB         105    ;  i
+   904d   6e                      DB         110    ;  n
+   904e   20                      DB          32    ;   
+   904f   73                      DB         115    ;  s
+   9050   69                      DB         105    ;  i
+   9051   7a                      DB         122    ;  z
+   9052   65                      DB         101    ;  e
+   9053   2c                      DB          44    ;  ,
+   9054   20                      DB          32    ;   
+   9055   6c                      DB         108    ;  l
+   9056   65                      DB         101    ;  e
+   9057   74                      DB         116    ;  t
+   9058   73                      DB         115    ;  s
+   9059   20                      DB          32    ;   
+   905a   72                      DB         114    ;  r
+   905b   75                      DB         117    ;  u
+   905c   6e                      DB         110    ;  n
+   905d   21                      DB          33    ;  !
+   905e   00                      DB           0    ;     905f   72                      DB         114    ;  r
+   9060   6f                      DB         111    ;  o
+   9061   77                      DB         119    ;  w
+   9062   3a                      DB          58    ;  :
+   9063   00                      DB           0    ;     9064   20                      DB          32    ;   
+   9065   00                      DB           0    ;     9066   20                      DB          32    ;   
+   9067   00                      DB           0    ;     9068   23                      DB          35    ;  #
+   9069   00                      DB           0    ;     906a   2e                      DB          46    ;  .
+   906b   00                      DB           0    ;     906c   6f                      DB         111    ;  o
+   906d   00                      DB           0    ;     906e   6d                      DB         109    ;  m
+   906f   61                      DB          97    ;  a
+   9070   6b                      DB         107    ;  k
+   9071   65                      DB         101    ;  e
+   9072   4d                      DB          77    ;  M
+   9073   61                      DB          97    ;  a
+   9074   74                      DB         116    ;  t
+   9075   72                      DB         114    ;  r
+   9076   69                      DB         105    ;  i
+   9077   78                      DB         120    ;  x
+   9078   2e                      DB          46    ;  .
+   9079   2e                      DB          46    ;  .
+   907a   2e                      DB          46    ;  .
+   907b   00                      DB           0    ;     907c   70                      DB         112    ;  p
+   907d   72                      DB         114    ;  r
+   907e   69                      DB         105    ;  i
+   907f   6e                      DB         110    ;  n
+   9080   74                      DB         116    ;  t
+   9081   4d                      DB          77    ;  M
+   9082   61                      DB          97    ;  a
+   9083   74                      DB         116    ;  t
+   9084   72                      DB         114    ;  r
+   9085   69                      DB         105    ;  i
+   9086   78                      DB         120    ;  x
+   9087   2e                      DB          46    ;  .
+   9088   2e                      DB          46    ;  .
+   9089   2e                      DB          46    ;  .
+   908a   00                      DB           0    ;     908b   73                      DB         115    ;  s
+   908c   6f                      DB         111    ;  o
+   908d   6c                      DB         108    ;  l
+   908e   76                      DB         118    ;  v
+   908f   69                      DB         105    ;  i
+   9090   6e                      DB         110    ;  n
+   9091   67                      DB         103    ;  g
+   9092   2e                      DB          46    ;  .
+   9093   2e                      DB          46    ;  .
+   9094   2e                      DB          46    ;  .
+   9095   00                      DB           0    ;     9096   73                      DB         115    ;  s
+   9097   6f                      DB         111    ;  o
+   9098   6c                      DB         108    ;  l
+   9099   76                      DB         118    ;  v
+   909a   65                      DB         101    ;  e
+   909b   64                      DB         100    ;  d
+   909c   00                      DB           0    ;     909d   6e                      DB         110    ;  n
+   909e   6f                      DB         111    ;  o
+   909f   74                      DB         116    ;  t
+   90a0   20                      DB          32    ;   
+   90a1   73                      DB         115    ;  s
+   90a2   6f                      DB         111    ;  o
+   90a3   6c                      DB         108    ;  l
+   90a4   76                      DB         118    ;  v
+   90a5   61                      DB          97    ;  a
+   90a6   62                      DB          98    ;  b
+   90a7   6c                      DB         108    ;  l
+   90a8   65                      DB         101    ;  e
+   90a9   00                      DB           0    ;     90aa   00                      DB           0    ;     90ab                         END
+8ff0  CONSTCHARTXT    0004  OPCAL         0005  OPINT         0006  OPJMP     
+0007  OPJPC         0000  OPLIT         0002  OPLOD         0001  OPOPR     
+0009  OPRET         000c  OPSTK         0003  OPSTO         000d  OPVER     
+0008  OPXIT         8800  PLPROG        000a  TXOUT         000b  TXTIN     
+
