@@ -13,7 +13,15 @@ maze3a.mod  : TinyPascal maze program source.
               Software Practice and Experience, thus the usage
               of ".mod". 
 
-              execute this by (say) "TinyPascal < maze3a.mod" this
+              Note that this uses "Peek" and "Poke" to direct
+              memory access, and this file is set up to use
+              0xA000; Kelly Loyd reported using 0x2000 in his 
+              ROM in High Address Space MemberSHIP card. Change
+              the address in the maze3a.mod, then recompile, and
+              reassemble the resulting ".asm" file, to create
+              the .hex file at the correct memory partition.
+
+              Execute this by (say) "TinyPascal < maze3a.mod" this
               results in the file "assemblerOut.asm" - copy this
               manually to "maze3a.asm".
 
