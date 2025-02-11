@@ -117,6 +117,7 @@ procedure makematrix3;
      I just "rasterized" the interior walls
      and these lines short/long horizontal
      lines are drawn here:}
+    horizontalLine(2,9,2,9); {thx Kelly for this one}
     horizontalLine(3,1,3,7);
     horizontalLine(4,7,4,9);
     horizontalLine(5,3,5,5);
@@ -160,14 +161,11 @@ procedure printmatrix;
            is not working 100% yet, but, for the
            write, we need it to be a char, so
            ...}
-          i := peek(i);
-          if i=visitedcell then i := freecell;
-{doing some bounds checking}
-{if i > 127 then i := 'X';
-if i < 32 then i := 'x';
-}
-
-          ch := i;
+          ch := peek(i);
+          if ch=visitedcell then ch := freecell;
+          {doing some bounds checking}
+          if ord(ch) > 127 then ch := 'X';
+          if ord(ch) < 32 then ch := 'x';
 
           write(ch);
         end;
@@ -229,12 +227,21 @@ begin
   pathcell := 'o';
 
   { where the matrix array is}
-{1802 membership}
-  locn := 0xA000;
+  {1802 memberchip: 0xA000;}
+  {1802 membership: 0x2000;}
 
-{Pascal compiler}
-  {locn := 0x000;}
+  writeln('looking to see where RAM is');
+  poke(0xA000,'q');
+  if peek(0xA000) = 'q'then locn := 0xA000
+  else
+    begin
+      poke(0x2000,'q');
+      if peek(0x2000) = 'q'then locn := 0x2000
+      else writeln('WARNING, could not find free RAM');
+    end;
+  writeln('using RAM at:',locn);
 
+  
   writeln('makeMatrix...');
   makematrix3;
   writeln('printMatrix...');

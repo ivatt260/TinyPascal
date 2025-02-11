@@ -20,6 +20,7 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+;
 ; Jan 4 2025
 ; HELLOSTRING printing moved up a bit, so the interpreter
 ; stack is not overwritten.
@@ -218,7 +219,7 @@ MC20ANSA   EQU     1
 ; MemberCHIP card: RAM at 8000H
 ORGINIT    EQU     08000H
 ROMISAT    EQU     0
-STACKST	EQU	0FEFFH	; note: FFxx last lines used by MemberCHIP monitor
+STACKST	EQU	0FFFFH
 	ENDI ; memberCHIP card
 
 	IF MEMBERSHIP
@@ -226,7 +227,7 @@ STACKST	EQU	0FEFFH	; note: FFxx last lines used by MemberCHIP monitor
 ; MemberSHIP card: RAM at 0000H
 ORGINIT     EQU    0
 ROMISAT     EQU     08000H
-STACKST	EQU	07EFFH	; note: 7Fxx last lines used by MemberSHIP monitor
+STACKST	EQU	07FFFH
 	ENDI ; memberSHIP card
 
 	IF MC20ANSA

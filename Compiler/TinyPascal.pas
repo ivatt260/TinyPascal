@@ -17,7 +17,28 @@ program TinyPascal(input,output);
  ******************************************************)
 
 (*
- 
+
+Feb 10 2025: 
+	- typing should work.
+	- added in pre-defined types, and true and false
+	  variables; so have:
+		boolean (incl. true and false)
+		uint16 (0->65535)
+		char (0->255)
+
+	- added enumerations;
+
+	- added  functions:
+		x := ord(true);
+		c := chr (33);
+		c := peek (0xFF00);
+		poke (0xFF00,'Z');
+                b := succ(false);
+                b := pred(b);
+
+	NOTE that types have a range built-in; HOWEVER
+	range checking not currently implemented.
+
 Dec 11  - Functions and 1802 code, SHL 1 for the ax param.
 
 Nov 30  - Functions - in the function itself, you can only
@@ -80,7 +101,7 @@ JAS - moving closer to real pascal
 
 label 99;
 
-	const norw = 30;      {no. of reserved words}
+	const norw = 32;      {no. of reserved words}
 	   txmax = 200;       {length of identifier table}
 	   nmax = 5;         {max. no. of digits in numbers}
 	   al = 10;           {length of identifiers}
@@ -90,6 +111,8 @@ label 99;
 	   cxmax = 20000;     {size of code array}
 	   constCharMax=1024; {size of static string store}
 	   maxparams=10;      {max number of params for func/proc}
+           numReservedTypes=7;{the number of reserved types}
+           startingLevel=0;   {block starting level, keep at 0}
 
 	   DlSlRa_proc = 3;   {stack space for dynamic link, static
 			       link and return address for procedures}
@@ -97,15 +120,26 @@ label 99;
 	   DlSlRa_func = 3;   {stack space for dynamic link, static
 			       link and return address for functions}
 
+           noType = -1;       {type not (yet?) found on table}
 
+           {table entry for built-in types}
+           unknownType = 1;
+           uint16Type = 2;
+           charType = 3;
+           booleanType = 4;
+           {not really supported fully:}
+           charStringType = 5;
 
 
 	(* I/O for read/write *)
-	(* keep these the same for the interpreter *)
-	const IO_newLine = 0;
-	const IO_charString = 1;
-	const IO_uint16 = 2;
-	const IO_char = 3;
+        {have to map internal types to types in the interpreter.
+         we may change the order here, but have to keep them as the 
+         interpreter expects}
+
+	const IO_newLine = 0; {not a valid table entry, so we just use this}
+	const IO_charString = 1 {charStringType};
+	const IO_uint16 = 2 {uint16Type};
+	const IO_char = 3 {charType};
 
 	(* used for generating a CR-LF on output *)
 	const IO_Write = 32;
@@ -133,6 +167,8 @@ label 99;
         const opr_peek= 17;  {peek at RAM}
         const opr_poke= 18;  {poke at RAM}
 
+        const peekPokeMemSize = 32767;
+
 
 	type errorsym = (eqlExpected, constExpected, varExpected,
 		stmtBegsym, paramTypErr, boolErr,
@@ -146,13 +182,12 @@ label 99;
 		becomesExpected, identifierExpected,
 		procedureExpected, thenExpected, endExpected, doExpected, statenderr, 
 		constVarExpected, rparenexpected,
-		lparenexpected, commaExpected,
-		facbegerr, typeMismatch, charsOnlyinFactor,
+		lparenexpected, commaExpected, equalsExpected,
+		facbegerr, typeMismatch, typeExpected, charsOnlyinFactor, invOpForType,
 		nountil, nmaxnumexpected,blocknumexpected, facnumexpected,procedureLevel);
 
-	{Expression types}
-
-	type vType = (noType,booleanType,uint16Type,integerType,charType,stringType);
+        {on-screen representation stype}
+        type displayStyle = (noDisplay, numberDisplay, charDisplay, booleanDisplay,enumDisplay);
 
 	type symbol =
 	   (nul,ident,number,quote,charString,plus,minus,times,slash,
@@ -160,12 +195,12 @@ label 99;
 	    colon,period,becomes,beginsym,endsym,ifsym,thensym,
 	    whilesym,dosym,constsym,varsym,procsym,
 	    elsesym,repeatsym,untilsym, peeksym, pokesym, arraysym,
-	    charsym, int16sym,uint16sym,
-            andsym, divsym, modsym, notsym, orsym,
+	    typesym, andsym, divsym, modsym, notsym, orsym,
+            predsym,succsym,ordsym, chrsym,
   	    funcsym,forsym,tosym,downtosym,casesym,writesym,writelnsym);
 
     alfa = packed array [1..al] of char;
-    obj = (constant,varible,proc,func,onbekend);
+    obj = (const_def,type_def,var_def,proc_def,func_def,onbekend);
     symset = set of symbol;
 
     fct = (lit,opr,lod,sto,cal,int,jmp,jpc,ret,tot,tin,xit,stk,ver);   {functions}
@@ -203,30 +238,43 @@ var ch: char;         {last character read}
     word: array [1..norw] of alfa;
     wsym: array [1..norw] of symbol;
     ssym: array [char] of symbol;
-    mnemonic: array [fct] of
-                 packed array [1..5] of char;
+    mnemonic: array [fct] of packed array [1..5] of char;
+
     (* for writing out assembler *)
-    omnemonic: array [fct] of
-                 packed array [1..7] of char;
+    omnemonic: array [fct] of packed array [1..7] of char;
+
     exprbegsys, simpexsys, declbegsys, statbegsys, facbegsys, termbegsys: symset;
+
     table: array [0..txmax] of
            record 
+              {ASCII name}
               name: alfa;
-              typ: vType;
+
+              {Internal type - if > 0, points to a table index of type}
+              typePtr:integer;
+
               case kind: obj of
-              constant: (val: integer);
-              varible, func, proc: (
+                const_def: (
+                           value, parent: integer);
+
+                type_def: (size,lowerBound,upperBound:integer;
+                           display:displayStyle) ;
+
+                var_def, func_def, proc_def: (
                   level, adr, nparams: integer;
-                  pType: array[1..maxparams] of vType;
-                             )
+                  {parameter types, points to table entry for param type}
+                  pType: array[1..maxparams] of integer;
+                             );
+                onbekend: (); {unknown}
            end;
+
 
     {for constant chars - eg, writeln text}
     constCharIndex: integer;
     constStringStart: integer;
     constCharArray: array[0..constCharMax] of char;
 
-    peekPokeMem: array[0..1023] of integer;
+    peekPokeMem: array[0..peekPokeMemSize] of integer;
 
 (********************************************************)
 procedure outToAssembler;
@@ -238,8 +286,42 @@ procedure outToAssembler;
   begin {list code generated for this block}
     Assign (tfOut,'assemblerOut.asm');
     rewrite(tfOut);
-    writeln(tfOut,'; created from PL0 compiler');
+    writeln(tfOut,'; created from TinyPascal 1802 compiler');
     writeln(tfOut);
+    writeln(tfOut,';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;');
+    writeln(tfOut,'; Do we fit this into 0x0000 -> 0x7FFF or 0x8000 -> 0xFFFF?');
+    writeln(tfOut,'; Lee Harts MemberCHIP card ROM is 0x0000, the SHIP card is at 0x8000');
+    writeln(tfOut,'; Choose one of these to set the RAM block for us to go into');
+    writeln(tfOut,'; MEMBERCHIP rom is at 0x0000, ram starts at 0x8000');
+    writeln(tfOut,'; MEMBERSHIP rom is at 0x0000, ram starts at 0x0000');
+    writeln(tfOut,'');
+    writeln(tfOut,'MEMBERSHIP EQU     0 ; 1 == memberSHIP card - must set MC20ANSA as well.');
+    writeln(tfOut,'MEMBERCHIP EQU     1 ; 1 == memberCHIP card - must set MC20ANSA as well.');
+    writeln(tfOut,'');
+    writeln(tfOut,';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;');
+    writeln(tfOut,'; ');
+    writeln(tfOut,'; MC20ANSA - default EPROM for Lee Harts MemberCHIP card, but use for');
+    writeln(tfOut,'; both MemberSHIP and MemberCHIP cards; tested with MCSMP20J.bin for');
+    writeln(tfOut,'; MemberSHIP cards (Shows Ver. 2.0J on start) and MC20ANSA shows');
+    writeln(tfOut,'; v2.0AR 14 Feb 2022. Other versions likely ok, but need to ensure serial');
+    writeln(tfOut,'; function addresses are correct.');
+    writeln(tfOut,'');
+    writeln(tfOut,'	IF MEMBERCHIP');
+    writeln(tfOut,'; MemberCHIP card: ROM at 0000H');
+    writeln(tfOut,'; MemberCHIP card: RAM at 8000H');
+    writeln(tfOut,'ORGINIT    EQU     08000H');
+    writeln(tfOut,'ROMISAT    EQU     0');
+    writeln(tfOut,'STACKST	EQU	0FEFFH	; note: FFxx last lines used by MemberCHIP monitor');
+    writeln(tfOut,'	ENDI ; memberCHIP card');
+    writeln(tfOut,'');
+    writeln(tfOut,'	IF MEMBERSHIP');
+    writeln(tfOut,'; MemberSHIP card: ROM at 8000H');
+    writeln(tfOut,'; MemberSHIP card: RAM at 0000H');
+    writeln(tfOut,'ORGINIT     EQU    0');
+    writeln(tfOut,'ROMISAT     EQU     08000H');
+    writeln(tfOut,'STACKST	EQU	07EFFH	; note: 7Fxx last lines used by MemberSHIP monitor');
+    writeln(tfOut,'	ENDI ; memberSHIP card');
+    writeln(tfOut,'');
     writeln(tfOut,'OPLIT      EQU 000H');
     writeln(tfOut,'OPOPR      EQU 001H');
     writeln(tfOut,'OPLOD      EQU 002H');
@@ -255,8 +337,8 @@ procedure outToAssembler;
     writeln(tfOut,'OPSTK      EQU 00CH');
     writeln(tfOut,'OPVER      EQU 00DH');
     writeln(tfOut);
-    writeln(tfOut,'PLPROG    EQU 08000H + 0800H');
-    writeln(tfOut,'          ORG  PLPROG');
+    writeln(tfOut,'PASPROG    EQU ORGINIT + 0800H');
+    writeln(tfOut,'          ORG  PASPROG');
     writeln(tfOut);
 
       for i := 0 to cx-1 do
@@ -289,7 +371,7 @@ procedure outToAssembler;
                 end;
   
                 cal: begin
-                  writeln(tfOut, '          DW     PLPROG + (',ax:0,' SHL 2)');
+                  writeln(tfOut, '          DW     PASPROG + (',ax:0,' SHL 2)');
                 end;
   
                 int: begin
@@ -297,11 +379,11 @@ procedure outToAssembler;
                 end;
   
                 jmp: begin
-                  writeln(tfOut, '          DW     PLPROG + (',ax:0,' SHL 2)');
+                  writeln(tfOut, '          DW     PASPROG + (',ax:0,' SHL 2)');
                 end;
   
                 jpc: begin
-                  writeln(tfOut, '          DW     PLPROG + (',ax:0,' SHL 2)');
+                  writeln(tfOut, '          DW     PASPROG + (',ax:0,' SHL 2)');
                 end;
 
                 ret: begin
@@ -349,17 +431,165 @@ procedure outToAssembler;
 
 
 (********************************************************)
-procedure printvType(mysym:vType);
+
+procedure printStyle(mysym:displayStyle); 
   begin
     case mysym of
-      noType:      write ('noType  ');
-      booleanType: write ('boolean ');
-      uint16Type:  write ('uint16  ');
-      integerType: write ('integer ');
-      charType:    write ('char    ');
-      stringType:  write ('string  ');
+      noDisplay:        write ('blank       ');
+      numberDisplay:    write ('number      ');
+      charDisplay:      write ('character   ');
+      booleanDisplay:   write ('boolean     ');
+      enumDisplay:      write ('enumeration ');
     end;
   end;
+
+procedure printvtype(mysym:integer);
+  begin
+    {writeln('printvtype...',mysym:3);}
+    if mysym < 1 then begin
+      {writeln ('printvtype, number too small:',mysym:2) }
+    end else if mysym > norw then writeln('printvtype, number index too large',mysym:5) else
+    begin
+      with table[mysym] do begin
+        if kind <> type_def then
+          writeln('printvtype, mysym ',mysym:2,' points to alpha ',name)
+        else 
+          write ('typeNode: ',mysym:3, ' typedef: ',name);
+      end;
+    end;
+  end;
+
+   {for printing initial builtin entries}
+   {procedure printInitTable;
+     var i,j: integer;
+     
+     begin
+     j := booleanType+2;
+
+     writeln ('---------------------------------------------');
+     writeln ('printInitTable for index ',1:3,' to ',j:3);
+     for i := 1 to j  do
+
+       with table[i] do
+         begin
+         write(i:3,' ',name,' ');
+         printvtype(typePtr);
+
+         case kind of
+           const_def: begin
+              write ('const: value ',value:5,' of enum type table entry: ',parent:3);
+           end;
+
+           var_def: begin
+              write ('var:   level ',level:3,' stack ',adr:3);
+           end;
+
+           proc_def: begin
+              write ('proc:  level ',level:3,' @code ',adr:3,' nparams:',nparams:2);
+              writeln();
+              for j := 1 to nparams do
+                begin
+                write('                      param:',j:2,' type: ');
+                printvtype(ptype[j]);
+                writeln();
+                end;
+           end;
+
+           func_def: begin
+              write ('func:  level ',level:3,' @code ',adr:3,' nparams:',nparams:2);
+              writeln();
+              for j := 1 to nparams do
+                begin
+                write('                      param:',j:2,' type: ');
+                printvtype(ptype[j]);
+                writeln();
+                end;
+           end;
+
+           type_def: begin
+              write('type:  size:',size:5,' lower bound:',lowerBound:2,
+                    ' upperBound:',upperBound:6,' displayStyle:');
+              printStyle(display);
+           end;
+          
+           onbekend: begin
+              writeln('unknown table entry - huh??');
+           end;
+         end;
+
+         writeln();
+         end;
+
+       writeln ('---------------------------------------------');
+     end; printInitTable}
+
+
+procedure loadBuiltinTypes;
+   begin {enter obj into table}
+     with table[unknownType] do begin
+       name := '-unknown-  ';
+       kind := type_def;
+       {typ := uint16Type;}
+       size := 0;
+       lowerBound :=0;
+       upperBound :=0;
+       display := noDisplay;
+     end;
+    
+     with table[uint16Type] do begin
+       name := 'uint16    ';
+       kind := type_def;
+       {typ := uint16Type;}
+       size := 32767;
+       lowerBound :=0;
+       upperBound :=65535;
+       display := numberDisplay;
+     end;
+    
+     with table[charType] do begin
+       name := 'char      ';
+       kind := type_def;
+       {typ := charType;}
+       size := 256;
+       lowerBound :=0;
+       upperBound :=255;
+       display := charDisplay;
+     end;
+
+     with table[booleanType] do begin
+       name := 'boolean   ';
+       kind := type_def;
+       {typ := booleanType;}
+       size := 2;
+       lowerBound :=0;
+       upperBound :=1;
+       display := booleanDisplay;
+     end;
+
+     {pre-define true and false here}
+     with table[booleanType+1] do begin
+       name := 'false     ';
+       kind := const_def;
+       value := 0;
+       parent := booleanType;
+       typePtr := booleanType;
+     end;
+     with table[booleanType+2] do begin
+       name := 'true      ';
+       kind := const_def;
+       value := 1;
+       parent := booleanType;
+       typePtr := booleanType;
+     end;
+
+     {print this table...}
+     {have to uncomment the procedure!}
+     {printInitTable;}
+
+
+   end; 
+
+(********************************************************)
 
 procedure printSym (mysym:symbol);
   begin
@@ -398,9 +628,7 @@ procedure printSym (mysym:symbol);
       elsesym: writeln('elsesym');
       repeatsym: writeln('repeatsym');
       untilsym: writeln('untilsym');
-      charsym: writeln('charsym');
-      int16sym: writeln('int16sym');
-      uint16sym: writeln('uint16sym');
+      chrsym: writeln('chrsym');
       funcsym: writeln('funcsym');
       forsym: writeln('forsym');
       tosym: writeln('tosym');
@@ -420,7 +648,6 @@ procedure printSym (mysym:symbol);
 
 procedure error(n: errorsym);
 begin
-  {writeln(' ****',' ': cc-1, '^',n: 2); errcount := errcount+1;}
   writeln(' ****',' ': cc-1, '^'); errcount := errcount+1;
   case n of
       paramTypErr : writeln('parameter type mismatch');
@@ -432,12 +659,14 @@ begin
       lparenexpected : writeln('"(" expected');
       becomesExpected : writeln('":=" expected');
       commaExpected : writeln('"," expected');
+      equalsExpected: writeln('"=" expected');
 
       thenExpected : writeln('keyword "then" expected');
       endExpected : writeln('keyword "end" expected');
       doExpected : writeln('keyword "do" expected');
       nountil: writeln('keyword "until" expected');
 
+      typeExpected : writeln('builtin or defined type identifier expected');
       charExpected : writeln('char type expected');
       constExpected: writeln('constant expected');
       varExpected: writeln('const ident found, can not assign to it');
@@ -455,6 +684,7 @@ begin
       facbegerr: writeln ('expected factor keywords');
       charsOnlyinFactor: writeln ('charString found, but currently only support chars here');
       typeMismatch: writeln('type mismatch');
+      invOpForType: writeln('invalid operation for type');
       boolErr: writeln('found boolean comparitors, but not a boolean expression?');
       blocknumexpected : writeln('blocknumber expected');
       nmaxnumexpected : writeln('nmaxnumber expected');
@@ -508,6 +738,13 @@ procedure getsym;
        end;
        toUpper := ch;
      end {toUpper};
+
+   { get a character from input.
+     this WILL PRINT out source, with code index, at each
+     line. If you don'w want this output, then comment out
+     both the "write cx: 5,' ');" line 
+        AND
+     "write(ch);" line in this procedure}
 
    procedure getch;
    begin if cc = ll then
@@ -731,54 +968,191 @@ procedure block(lev,tx: integer;
       tx0: integer;     {initial table index}
         i: integer;     {for loop counter}
       vs:  integer;     {define variables, need to assign type after entry}
-      cx0: integer;     {initial code index}
       dxSaved: integer; {parsing of proc/func params}
-      varType: vType;   {type of variable on declaration}
+      varType: integer; {type of variable on declaration- 
+                         should point to table entry, or -1(noType)}
       procFunc: obj;    {where is this called from?}
       funcEntry: integer;{table entry if a function}
+      mainBody:  integer;{if gtr 0 the address of the main body}
 
-   {return the vType of a variable, from the sym read in}
-   function getType(inty : symbol) : vType;
-     begin
-        {printSym(inty);}
-	if inty = int16sym then getType := integerType
-	else if inty = charsym then getType := charType
-	else if inty = uint16sym then getType := uint16Type
-        else getType := noType
-     end {getType};
 
-   procedure enter(k: obj; levInc:integer);
-   begin {enter obj into table}
-      tx := tx + 1;
-      {write('enter, have variable ',id,' writing to tx ',tx:2);
-      writeln('levInc ',levInc:4);}
-
-      with table[tx] do
-      begin name := id; kind := k;
-         case k of
-         constant: begin if num > amax then
-                              begin error(blocknumexpected); num :=0 end;
-                      val := num
-                   end;
-         {variable, could have parameters that are at the body level}
-         varible: begin level := lev+levInc; adr := dx; dx := dx + 1;
-                  end;
-         proc, func:
-                  begin
-                    level := lev;
-                    nparams := 0;
-                  end 
-         end
-      end
-   end {enter};
-
+   {find identifier position in ID table}
    function position(id: alfa): integer;
       var i: integer;
    begin {find indentifier id in table}
+      {writeln ('position, tx:',tx:2,' id ',id);}
       table[0].name := id; i := tx;
       while table[i].name <> id do i := i-1;
       position := i
    end {position};
+
+
+
+   {return the integer of a variable, from the sym read in}
+   function getType(inty : symbol) : integer;
+     var i:integer;
+         found:boolean;
+         returning:integer;
+     begin {1}
+        found := true;
+
+        {write ('getType for ',id,':'); printSym(inty);}
+
+        {enum etc types}
+        {else}
+        if inty = ident then begin {2}
+          i:= position(id);
+          {writeln ('getType, we have an ident here.',id);
+           writeln('we have position ',i:2);}
+
+          if i = 0 then begin {3}
+            found := false;
+            error(idNotFound) 
+          end {3} else begin {3}
+            if table[i].kind = type_def then begin {4}
+                found := true;
+                returning := i;
+              end {4}
+            else
+              found := false;
+          end; {3}
+        end; {2}
+
+
+        {error checking}
+        if not found then begin {2}
+          error(typeExpected);
+          returning :=-1; 
+        end; {2}
+       {write('getType, returning:');printvtype(-1);}
+
+       getType := returning;
+     end {1, getType};
+
+
+
+   procedure enterNewType;
+   begin {enter obj into table}
+     tx := tx + 1;
+     with table[tx] do begin
+       name := id;
+       kind := type_def;
+       {typ := enumType;}
+       display:= enumDisplay;
+       size := 0;
+       lowerBound :=0;
+       upperBound :=0;
+     end;
+   end; 
+
+   procedure enterNewEnumElement(var p_entry,val:integer) ;
+   begin {enter obj into table}
+     tx := tx + 1;
+     {writeln('newEnumElement, tx:',tx:2,' value ',val:2);}
+     with table[tx] do begin
+       name := id;
+       kind := const_def;
+       {typ := enumElement;}
+       value := val;
+       parent := p_entry;
+     end;
+     if (p_entry >=0) then 
+       with table[p_entry] do begin
+         {bounds 0->6, size 7, so do bound first}
+         upperBound := size; 
+         size := size + 1;
+       end;
+   end; 
+
+
+
+   { enter a variable, procedure, function into the table}
+   procedure enterVPFC (k: obj; levInc:integer);
+   begin {enter obj into table}
+      tx := tx + 1;
+      {write('enterVPFC, have variable ',id,' writing to tx ',tx:2);
+      writeln(' levInc:',levInc:4);}
+
+      with table[tx] do
+      begin name := id; kind := k;
+         case k of
+         const_def: begin if num > amax then
+                              begin error(blocknumexpected); num := 0 end;
+                      value := num;
+                      parent := -1;
+                   end;
+         {variable, could have parameters that are at the body level}
+         var_def: begin level := lev+levInc; adr := dx; dx := dx + 1;
+                  end;
+         proc_def, func_def:
+                  begin
+                    level := lev;
+                    nparams := 0;
+                  end;
+         type_def: begin 
+                     write('enter, type_def should not be here  not coded yet'); 
+                   end;
+         onbekend: begin writeln('enter, unknown - onbekend - not coded properly');end;
+        end; {with end}
+      end
+   end {enter};
+
+   (****************************************)
+   procedure typedeclaration;
+   var myTypetx: integer;
+       myval: integer;
+
+   begin {1}
+     myTypetx := -1; { incredibly invalid}
+     myval := 0; {ordinal value of first index}
+
+     if sym = ident then
+      begin {2}
+         enterNewType;
+         myTypetx := tx;
+         getsym;
+         if sym in [eql, becomes] then
+           begin {3}
+             {writeln('have either eql or becomes');}
+             if sym = becomes then error(eqlExpected);
+             getsym;
+             if sym = lparen then 
+               begin {4}
+               {writeln ('have lparen');}
+               getsym;
+               while sym = ident do
+                 begin {5}
+{writeln ('ident value ',num:3,' is part of type def at ',myTypetx:3);
+writeln ('make it a new table entry');}
+                   {increment the number of elements of the enum}
+                   {and save this}
+                   if (myTypetx>0) then begin
+                     enterNewEnumElement(myTypetx,myval);
+                     myval := myval+1;
+                   end;
+
+                   if sym = ident then getsym else error(identExpected);
+                   if sym = comma then 
+                     begin {6}
+                       getsym;
+                     end {6}
+                  end; {5}
+
+                if sym = rparen then 
+                  begin {5}
+                    {finish this enumeration off}
+                    getsym;
+                    {writeln('type enumeration, got rparen');}
+                  end {5}
+              else error (commaExpected);
+
+            end; {4} {lparen}
+         end {3}
+         else error(eqlExpected)
+      end {2}
+      else error(identifierExpected);
+      {writeln('end typedeclaration');}
+   end {typedeclaration};
 
    (****************************************)
    procedure constdeclaration;
@@ -788,7 +1162,7 @@ procedure block(lev,tx: integer;
          begin if sym = becomes then error(eqlExpected);
             getsym;
             if sym = number then
-               begin enter(constant,0); getsym
+               begin enterVPFC(const_def,0); getsym
                end
             else if sym = quote then 
                begin
@@ -812,7 +1186,7 @@ procedure block(lev,tx: integer;
     current level}
 
    begin if sym = ident then
-           begin enter(varible,levInt); getsym
+           begin enterVPFC(var_def,levInt); getsym
            end else error(identifierExpected)
    end {vardeclaration};
 
@@ -820,21 +1194,13 @@ procedure block(lev,tx: integer;
    procedure listcode;
       var i: integer;
    begin {list code generated for this block}
-      for i := cx0 to cx-1 do
+      writeln('running listcode for 0 to:' ,cx-1:3);
+      for i := 0 to cx-1 do
          with code[i] do
             writeln(i:5, mnemonic[fn]:5, lv:3, ax:5)
    end {listcode};
 
    (****************************************)
-{ notes
-
-    table: array [0..txmax] of
-           record name: alfa;
-              case kind: obj of
-              constant: (val: integer);
-              varible, proc: (level, adr: integer)
-           end;
-}
    procedure printTable;
      var i,j: integer;
      
@@ -848,33 +1214,45 @@ procedure block(lev,tx: integer;
        with table[i] do
          begin
          write(i:3,' ',name,' ');
-         printvType(typ);
+         printvtype(typePtr);
+
          case kind of
-           constant: begin
-              write ('const: value ',val);
+           const_def: begin
+              write ('const: value: ',value:5,' of enum type table entry: ',parent:3);
            end;
-           varible: begin
-              write ('var:   level ',level:3,' stack ',adr:3);
+
+           var_def: begin
+              write ('var:   level: ',level:3,' stack: ',adr:3);
            end;
-           proc: begin
-              write ('proc:  level ',level:3,' @code ',adr:3,' nparams:',nparams:2);
-              writeln();
+
+           proc_def: begin
+              write ('proc:  level: ',level:3,' code: ',adr:3,' nparams:',nparams:2);
               for j := 1 to nparams do
                 begin
-                write('                      param:',j:2,' type: ');
-                printvType(ptype[j]);
                 writeln();
+                write('                      param:',j:2,' type: ');
+                printvtype(ptype[j]);
                 end;
            end;
-           func: begin
-              write ('func:  level ',level:3,' @code ',adr:3,' nparams:',nparams:2);
-              writeln();
+
+           func_def: begin
+              write ('func:  level: ',level:3,' code: ',adr:3,' nparams:',nparams:2);
               for j := 1 to nparams do
                 begin
-                write('                      param:',j:2,' type: ');
-                printvType(ptype[j]);
                 writeln();
+                write('                      param:',j:2,' type: ');
+                printvtype(ptype[j]);
                 end;
+           end;
+
+           type_def: begin
+              write('type:  size:',size:5,' lower bound:',lowerBound:2,
+                    ' upperBound:',upperBound:6,' displayStyle:');
+              printStyle(display);
+           end;
+          
+           onbekend: begin
+              writeln('unknown table entry - huh??');
            end;
          end;
 
@@ -887,29 +1265,29 @@ procedure block(lev,tx: integer;
 (************************************************************)
    procedure statement(fsys: symset);
       var i:integer;
-      var returnedTyp: vType;
+      var returnedTyp: integer;
       {var endsym: symbol;}
 
 
 (************************************************************)
-    function expression(fsys: symset; typ:vType): vType;
+    function expression(fsys: symset; typ:integer): integer;
          var relop: symbol;
-         var returnedTypLHS, returnedTypRHS : vType;
+         var returnedTypLHS, returnedTypRHS : integer;
 
 (************************************************************)
-      function simpleExpression(fsys: symset; typ:vType) : vType;
+      function simpleExpression(fsys: symset; typ:integer) : integer;
          var addop: symbol;
-         var returnedTyp: vType;
-         var expectedTyp: vType;
+         var returnedTyp: integer;
+         var expectedTyp: integer;
 
 (************************************************************)
-         function term(fsys: symset; typ:vType): vType;
+         function term(fsys: symset; typ:integer): integer;
             var termop: symbol;
 
 (************************************************************)
 
 {functions, with () and params, parse these params}
-function parseFuncParams(i:integer) :vType;
+function parseFuncParams(i:integer) :integer;
   var pcount : integer;
 
   begin
@@ -942,10 +1320,10 @@ function parseFuncParams(i:integer) :vType;
                 expression([rparen,comma]+fsys,expectedTyp);
               if expectedTyp <> returnedTyp then
                 begin
-                    write('note: parseFuncParams, body expectedTyp ');
-                     printvType(expectedTyp);writeln();
+                    {write('note: parseFuncParams, body expectedTyp ');
+                     printvtype(expectedTyp);writeln();
                     write('note: parseFuncParams, body returnedTyp ');
-                     printvType(returnedTyp);writeln();
+                     printvtype(returnedTyp);writeln();}
                   error(paramTypErr);
                 end;
 
@@ -967,97 +1345,228 @@ function parseFuncParams(i:integer) :vType;
 end;
 
 (************************************************************)
-
-            function factor(fsys: symset; typ:vType): vType;
+            function factor(fsys: symset; typ:integer): integer;
                var i: integer;
-            begin 
+                   mysym:symbol;
 
+(************************************************************)
+            procedure factor_ident;
+            begin
+                i:= position(id);
+                {writeln('factor, ident, id:',i:3,' num:',num:4);}
+                if i = 0 then error(idNotFound) else
+                with table[i] do
+                 case kind of
+                    const_def: begin
+                      {writeln('factor, have const_def, typePtr:',typePtr:3,' parent:',parent:3,' value:',value:3);}
+                      returnedTyp := parent; 
+                      gen(lit, 0, value);
+                      end;
+                    var_def: begin
+                      {writeln('factor, found a var. typePtr:',typePtr);}
+                      {Variable, return the type if we don't know statement type,
+                       or if known type, check if correct, if not, error}
+            
+                      {writeln('factor, var_def pt 1, typ:',typ:2,' returnedTyp:',returnedTyp:2,
+                      ' typePtr:',typePtr:2);}
+            
+                      {did we know what type to expect?}
+                      if expectedTyp = noType then expectedTyp := typePtr;
+                      {do we know what we are expected to return?}
+                      if returnedTyp = noType then returnedTyp := typePtr;
+
+                      {writeln('factor, var_def pt 2, typ:',typ:2,' returnedTyp:',returnedTyp:2,
+                      ' typePtr:',typePtr:2);}
+            
+                      {if we had a known type, and this var doesnt match...}
+                      if returnedTyp <> expectedTyp then begin
+                        error (typeMismatch);
+                        writeln('at posn rr (factor) in pascal');
+                      end; 
+            
+                      gen(lod, lev-level, adr);
+                      end;
+                    proc_def: begin
+                      error(constVarExpected)
+                      end;
+                    func_def: begin
+                      getsym;
+                      returnedTyp := parseFuncParams(i);
+                      end;
+                    type_def: begin
+                      returnedTyp := typ;
+                      gen(lod, lev-level, adr);
+                    end;
+                 end; {case}
+                 {writeln('factor, while, ident, returnedTyp is ',returnedTyp);}
+                 getsym
+            end; {factor_ident}
+
+            procedure factor_constants;
+              begin
+                {is this the correct type for a number?}
+                returnedTyp := uint16Type;
+                if num >  uint16amax then
+                 begin 
+                   error(facnumexpected); 
+                   num := 0
+                 end;
+                gen(lit, 0, num); 
+                getsym
+              end; {factor_constants}
+
+
+            procedure factor_charString;
+              begin
+                returnedTyp := charType;
+
+                {writeln ('factor, have charString of size ',
+                      constCharIndex - constStringStart,  
+                      ' char as decimal ',byte(constCharArray[constStringStart])
+                     );}
+
+                gen(lit, 0, byte(constCharArray[constStringStart]));
+
+                if constCharIndex-constStringStart <> 2 then
+                  error(charsOnlyinFactor);
+
+                getsym
+              end; {factor_charString}
+
+
+            procedure factor_lparen;
+              begin
+                getsym; 
+                {writeln('factor, lparen, expectedTyp '); printvtype(expectedTyp);}
+
+                returnedTyp := expression([rparen]+fsys,expectedTyp);
+                if sym = rparen then getsym else error(rparenexpected)
+              end; {factor_lparen}
+
+            procedure factor_peek;
+              begin {1}
+                getsym;
+                if sym = lparen then begin {2}
+                  getsym;
+
+                  {peek expects a uint address and returns a char}
+                  expectedTyp := uint16Type;
+                  returnedTyp := expression([rparen]+fsys,expectedTyp);
+
+                  {writeln ('factor, the peek expression returned type:',returnedTyp:3);}
+                  returnedTyp := charType;
+                  expectedTyp := charType;
+                  gen(opr,0,opr_peek);
+
+                  {writeln('after gen for peek, returnedTyp:',returnedTyp:2);}
+
+                  if sym = rparen then getsym
+                  else error (rparenexpected)
+                end {2}
+              else error (lparenExpected);
+            end; {factor_peek}
+
+
+            procedure factor_ord_etc;
+              begin {1}
+                {save this so that we know which}
+                mysym := sym;
+                getsym;
+
+                if sym = lparen then begin {2}
+                  getsym;
+
+                  {can only work on identifiers, constants, etc}
+                  if sym<>ident then 
+                    error(identExpected)
+                  else begin {3}
+                    i := position (id);
+                    if i = 0 then  
+                      error(idNotFound) 
+                    else begin {4}
+                      {writeln('ord, have const_def, typePtr:',typePtr:3,' parent:',parent:3,' value:',value:3);}
+                      {writeln('ord, var_def pt 1, typ:',typ:2,' returnedTyp:',returnedTyp:2,
+                      ' typePtr:',typePtr:2);
+                      }
+                      with table[i] do
+                        case kind of
+  
+                        const_def: begin {5}
+                          returnedTyp := parent; 
+                          gen(lit, 0, value);
+                          end; {5}
+  
+                        var_def: begin {5}
+                          {writeln('factor, found a var. typePtr:',typePtr);}
+                          {Variable, return the type if we don't know statement type,
+                           or if known type, check if correct, if not, error}
+  
+                          gen(lod, lev-level, adr);
+                          end; {5}
+                      end; {with and case}
+
+                      {go past the ident, hopefully rparen}
+                      getsym;
+                        
+                      {now what do we do with this?}
+                      if mysym = succsym then begin
+                        gen(lit,0,1); 
+                        gen(opr,0,opr_plus); {add}
+                        end;
+                      if mysym = predsym then begin
+                        gen(lit,0,1); 
+                        gen(opr,0,opr_minus); {subtract}
+                        end;
+
+                      returnedTyp := uint16Type;
+                      expectedTyp := returnedTyp;
+                      {writeln ('factor, the ORD,SUCC,PRED expression returned type:',returnedTyp:3);}
+                    end; {4} {ident found ok}
+                  end; {3} {not an ident}
+
+                  if sym = rparen then getsym else error(rparenexpected)
+                end {2}
+
+                else error (lparenexpected);
+              end; {factor ord_etc}
+            
+
+(************************************************************)
+            begin {factor}
                expectedTyp := typ;
                returnedTyp := noType;
+               {writeln('factor, type param:',typ:3);}
 
                test(facbegsys, fsys, facbegerr);
-               while sym in facbegsys do begin
-                  {write ('while sym in facbegsys... '); printSym(sym);}
-                  if sym = ident then begin
-                    i:= position(id);
-                    if i = 0 then error(idNotFound) else
-                    with table[i] do
-                     case kind of
-                        constant: begin
-                          returnedTyp := typ; 
-                          gen(lit, 0, val);
-                          end;
-                        varible: begin
-                          returnedTyp := typ; 
-                          gen(lod, lev-level, adr);
-                          end;
-                        proc: begin
-                          error(constVarExpected)
-                          end;
-                        func: begin
-                          getsym;
-                          returnedTyp := parseFuncParams(i);
-                          end;
-                     end; {case}
-                     getsym
-                   end {ident}
-
-                 else if sym = number then begin
-                   if num >  uint16amax then
-                           begin error(facnumexpected); num := 0
-                           end;
-                           returnedTyp := uint16Type;
-                   gen(lit, 0, num); 
-                   getsym
-                 end {number}
-
-                 else if sym = charString then begin
-                   returnedTyp := charType;
-
-                   {writeln ('factor, have charString of size ',
-                         constCharIndex - constStringStart,  
-                         ' char as decimal ',byte(constCharArray[constStringStart])
-                        );}
-
-                   gen(lit, 0, byte(constCharArray[constStringStart]));
-
-                   if constCharIndex-constStringStart <> 2 then
-                     error(charsOnlyinFactor);
-
-                   getsym
-                 end {charString}
-
-                 else if sym = lparen then begin
-                   getsym; 
-                   {writeln('factor, lparen, expectedTyp '); printvType(expectedTyp);}
-
-                   returnedTyp := expression([rparen]+fsys,expectedTyp);
-                   if sym = rparen then getsym else error(rparenexpected)
-                 end {lparen}
-
-                 else if sym = peeksym then begin
-                   getsym;
-                   if sym = lparen then begin
-                     getsym;
-                     expectedTyp := charType;
-                     returnedTyp := expression([rparen]+fsys,expectedTyp);
-                     gen(opr,0,opr_peek);
-                     if sym = rparen then getsym else error(rparenexpected)
-                   end
-                     else error (lparenexpected);
-                 end {peek}
                
-                 else if sym = notsym then begin
-                   getsym;
-                   returnedTyp := factor(fsys,typ);
-                   gen(opr,0,opr_not);
-                 end
-               end; {while}
+               {variables, functions}
+               if sym = ident then factor_ident
 
-               {  write('note: factor, expectedTyp ');
-                  printvType(expectedTyp);writeln();
-                 write('note: factor, returnedTyp ');
-                  printvType(returnedTyp);writeln();}
+               {unsigned constants}
+               else if sym = number then factor_constants
+
+               {character strings}
+               else if sym = charString then factor_charString
+
+               {left parenthesis}
+               else if sym = lparen then factor_lparen
+
+               {peek}
+               else if sym = peeksym then factor_peek
+
+               {ord chr pred succ}
+               else if sym in [ordsym,chrsym,predsym,succsym] then 
+                 factor_ord_etc
+
+               {NOT}
+               else if sym = notsym then begin
+                 getsym;
+                 returnedTyp := factor(fsys,typ);
+                 gen(opr,0,opr_not);
+               end;
+
+               {writeln('note: factor, expectedTyp:',expectedTyp);}
+               {writeln('note: factor, returnedTyp:',returnedTyp);}
 
                {test the types}
                if expectedTyp <> returnedTyp then begin
@@ -1065,160 +1574,212 @@ end;
                    {FACTOR, we NOW have the type we need}
                  end else begin
                    {use the expected type as the type in error condition}
-                   {error(typeMismatch);}
+                   writeln('invOpForType at 1');
+                   error(invOpForType);
                    returnedTyp := expectedTyp;
                  end;
                end; {type check}
-             test(fsys, [rparen], rparenexpected);
 
-             {write('note: factor, returning ');
-             printvType(returnedTyp);writeln();}
+             {writeln('factor, returning: ',returnedTyp);}
 
              factor := returnedTyp;
            end {factor};
 
 (************************************************************)
          begin {term} 
-           returnedTyp := factor(fsys+termbegsys,typ);
+           {writeln('term, typ:',typ:3);}
+           {is this a boolean condition, or an assignment?}
+           returnedTypRHS := noType;
 
-            {write('note: term, at start typ ');
-             printvType(typ);writeln();
-             write('note: term, at start returnedTyp ');
-             printvType(returnedTyp);writeln(); }
+           returnedTypLHS := factor(fsys+termbegsys,noType);
 
-            expectedTyp := returnedTyp;
+           {term can loop through these operators}
+           while sym in termbegsys do begin {while}
 
-            while sym in termbegsys do begin
-               termop:=sym;
-               getsym;
-               returnedTyp := factor(fsys+termbegsys,expectedTyp);
+             {writeln('term, returnedTypRHS:',returnedTypRHS:3);}
+    
+             termop:=sym;
+             getsym;
+             returnedTypRHS := factor(fsys+termbegsys,expectedTyp);
 
-               { do term operation }
-               if termop=times then gen(opr,0,opr_mul) 
-               else if termop = slash then gen(opr,0,opr_div)
-               else if termop = divsym then gen(opr,0,opr_div)
-               else if termop = modsym then gen(opr,0,opr_mod)
-               else if termop = andsym then gen(opr,0,opr_and)
+             {writeln('expression, returnedTypRHS:',returnedTypRHS:3);}
+    
+             {data type check}
+             if returnedTypLHS <> returnedTypRHS then begin {check}
+               writeln('typeMismatch in term');
+               error (typeMismatch);
+             end; {check}
+    
+             {ok, we know the term types match;
+              do term operation }
+             if termop = andsym then
+               if returnedTypLHS <> booleanType then begin
+                 writeln('invOpForType at 2');
+                 error (invOpForType);
+               end
+             else
+               if returnedTypLHS <> returnedTypRHS then begin
+                 write('term, symbol in question:');
+                   printSym(termop);
+                 writeln('; invOpForType at 3 termop:');
+                 error (invOpForType);
+               end;
 
-               else begin
-                 writeln ('term op not supported yet');
-               end {if chain}
-             end; {while}
+             if termop=times then gen(opr,0,opr_mul) 
+             else if termop = slash then gen(opr,0,opr_div)
+             else if termop = divsym then gen(opr,0,opr_div)
+             else if termop = modsym then gen(opr,0,opr_mod)
+             else if termop = andsym then gen(opr,0,opr_and)
+            
+           end; {while}
 
-             {write('note: term returning typ ');
-             printvType(returnedTyp);writeln();}
-
-           term := returnedTyp;
+           term := returnedTypLHS;
+           {writeln('term, returning:',returnedTypLHS:2);}
          end {term};
 
 (************************************************************)
       begin {simpleExpression}
 
-        {Write('note: simpleExpression, start typ    ');
-        printvType(typ);writeln();}
+        {Writeln('note: simpleExpression, start typ:',typ:3);}
 
         returnedTyp := noType;
         expectedTyp := noType;
 
-         if sym in simpexsys then
-            begin 
-              addop := sym; 
-              getsym; 
-              returnedTyp := term(fsys+simpexsys,typ);
-              if addop = minus then gen(opr, 0,opr_neg)
-            end 
-         else returnedTyp := term(fsys+simpexsys,typ);
 
-         {Write('note: simpleExpression, returnedTyp    ');
-          printvType(returnedTyp);writeln();}
+        {check that the type is able to use simpleExpression
+         operators}
+        addop := sym;
+
+        {are we in the middle of figuring out the type of RHS?}
+
+        {initial plus or minus - I know, uint16s can't be negative...}
+        if (sym = plus) or (sym = minus) then begin
+          {gosh - maybe this is the first thing on rhs of := 
+           so maybe it's noType? if so, assume number}
+          if typ = noType then typ := uint16type;
+
+          if typ <> uint16type then
+            writeln('invOpForType at 4');
+            error (invOpForType);
+          getsym;
+        end;
+
+        {writeln('calling term, typ currently is ',typ:3);}
+        returnedTyp := term(fsys+simpexsys,typ);
+        {writeln('after term, typ currently is ',typ:3,' returnedTyp:',returnedTyp:3);}
+
+        {term will return a type if we did not specify one,
+         so we use the returned type as our type here,
+         no matter what.}
+        typ := returnedTyp;
+
+        {if we got an initial minus sign at the beginning of simpleExpression}
+        if addop = minus then gen(opr, 0,opr_neg);
+{old
+        if sym=minus  then
+          begin 
+            returnedTyp := term(fsys+simpexsys,typ);
+            if addop = minus then gen(opr, 0,opr_neg)
+          end 
+        else returnedTyp := term(fsys+simpexsys,typ);
+}
+
+        {writeln('note: simpleExpression, after +- typ:',typ:3,' returnedTyp:',returnedTyp:3);}
 
         expectedTyp := returnedTyp;
 
          while sym in simpexsys do
             begin 
+              {writeln ('simpleExpression, in while loop');}
               addop := sym; 
               getsym; 
               returnedTyp := term(fsys+simpexsys,typ);
 
-              if addop=plus then
-                 gen(opr,0,opr_plus)
-              else if addop = minus then
-                 gen(opr,0,opr_minus)
-              else gen(opr,0,opr_or);
+              {check to see if this term type matches}
+
+              {writeln('simpleExpression, while, t1:',
+                typ:3, ' returnedTyp:',returnedTyp:3);}
+
+              if returnedTyp <> typ then 
+                begin
+                  writeln('typeMismatch 2');
+                  error(typeMismatch);
+                end;
+
+              {type checking for the simpleExpression
+               operators}
+              if addop in [plus,minus] then begin
+                if returnedTyp <> uint16Type then begin
+                  writeln('invOpForType simpleExpression 1');
+                  error(invOpForType);
+                end;
+
+                if addop=plus then
+                   gen(opr,0,opr_plus)
+                else gen (opr,0,opr_minus);
+              end
+
+              else if addop = orsym then begin
+                if returnedTyp <> booleanType then begin
+                  writeln('invOpForType simpleExpression 2');
+                  error(invOpForType);
+                end;
+                gen(opr,0,opr_or);
+              end;
         
-              {Write('note:  in while: simpleExpression, returnedTyp    ');
-                printvType(returnedTyp);writeln();}
-            end;
-
-            {  Write('note: simpleExpression, returning   ');
-              printvType(returnedTyp);writeln();}
-
+            end {while};
          simpleExpression := returnedTyp;
       end {simpleExpression};
 
 (************************************************************)
       begin {expression}
-         {write('note: expression, type ');printvType(typ);writeln();
-          write('and, current sym is ');printSym(sym);}
+         {writeln('expression, typ:',typ:3);}
 
          {is this a boolean condition, or an assignment?}
-         returnedTypLHS := noType;
          returnedTypRHS := noType;
 
-
-         {ask simpleExpression to give us the type it thinks it is}
-         {boolean expression, tell us that it is expecting a boolean}
-
-         if typ=booleanType then
-         returnedTypLHS := simpleExpression(fsys+exprbegsys,booleanType)
-         else
          returnedTypLHS := simpleExpression(fsys+exprbegsys,noType);
 
+         {writeln('expression, returnedTypLHS:',returnedTypLHS:3);}
+
+         { is this possibly a boolean?}
          if (sym in exprbegsys) then
            begin 
-             {if we are expecting a boolean expression, then...}
-             if typ = booleanType then
-               begin
-                   relop := sym; 
-                   getsym; 
-                   returnedTypRHS := simpleExpression(fsys,noType);
+             relop := sym; 
+             getsym; 
+             returnedTypRHS := simpleExpression(fsys,noType);
     
-                   {write('expression, boolean cond: returnedTypLHS ');
-                   printvType(returnedTypLHS); writeln();
-                   write('expression, boolean cond: returnedTypRHS ');
-                   printvType(returnedTypRHS); writeln();}
-                   
+             {writeln('expression, returnedTypRHS:',returnedTypRHS:3);}
     
-                   {data type check}
-                   {if returnedTypLHS <> returnedTypRHS then
-                     error (typeMismatch);}
+             {data type check}
+             if returnedTypLHS <> returnedTypRHS then begin
+               writeln('typeMismatch 22');
+               error (typeMismatch);
+             end;
     
-                   case relop of
-                      eql: gen(opr, 0, opr_eql);
-                      neq: gen(opr, 0, opr_neq);
-                      lss: gen(opr, 0, opr_lss);
-                      geq: gen(opr, 0, opr_geq);
-                      gtr: gen(opr, 0, opr_gtr);
-                      leq: gen(opr, 0, opr_leq);
-                   end;
-               end 
-             else  {if typ = booleanType}
-               error (boolErr);
-         end; {if sym in eql...}
+             case relop of
+               eql: gen(opr, 0, opr_eql);
+               neq: gen(opr, 0, opr_neq);
+               lss: gen(opr, 0, opr_lss);
+               geq: gen(opr, 0, opr_geq);
+               gtr: gen(opr, 0, opr_gtr);
+               leq: gen(opr, 0, opr_leq);
+             end;
+             { for return value from this expression HERE}
+             returnedTypLHS := booleanType;
+           end; 
 
+         {writeln('expression, returining:',returnedTypLHS:2);}
 
-      {write('expression, returining ');
-        printvType(returnedTypLHS);writeln();}
-
-      expression := returnedTypLHS;
+        expression := returnedTypLHS;
       end {expression};
 
 
       (************************************************************)
       procedure parseProcParams(i:integer);
         var pcount : integer;
-           var returnedTyp: vType;
-           var expectedTyp: vType;
+           var returnedTyp: integer;
+           var expectedTyp: integer;
         begin
       
           pcount := 0;
@@ -1244,10 +1805,10 @@ end;
                       expression([rparen,comma]+fsys,expectedTyp);
                     if expectedTyp <> returnedTyp then
                       begin
-                    write('note: useFuncParams, body expectedTyp ');
-                     printvType(expectedTyp);writeln();
-                    write('note: useFuncParams, body returnedTyp ');
-                     printvType(returnedTyp);writeln();
+                      {write('note: useFuncParams, body expectedTyp ');
+                       printvtype(expectedTyp);writeln();
+                       write('note: useFuncParams, body returnedTyp ');
+                       printvtype(returnedTyp);writeln();}
                       error(paramTypErr);
                       end;
                     
@@ -1283,9 +1844,9 @@ end;
              {writeln('stmtIdent: ID position ',i:2);}
 
              {write('ident statement start, sym is '); printSym(sym);}
-             if kind=proc then 
+             if kind=proc_def then 
                parseProcParams(i)
-             else if kind=func then
+             else if kind=func_def then
                begin
                  {this is a function, but the shadow variable is 1 above
                   the table index. Increment i so we are pointing at this 
@@ -1295,15 +1856,23 @@ end;
                      {writeln('stmtIdent, func store; genning sto with table entry ',i+1);}
                      getsym; 
                      if sym = becomes then getsym else error(becomesExpected);
-                     returnedTyp := expression(fsys,typ);
+                     returnedTyp := expression(fsys,typePtr);
                      gen(sto, lev-level, adr)
                    end;
                end
-             else if kind=varible then
+             else if kind=var_def then
                begin
                  getsym; 
                  if sym = becomes then getsym else error(becomesExpected);
-                 returnedTyp := expression(fsys,typ);
+                 returnedTyp := expression(fsys,typePtr);
+                 
+                 {type match check}
+                 {writeln ('stmtIdent, my type:',table[i].typePtr:3, 
+                   ' returnedTyp:',returnedTyp:3);}
+                 if table[i].typePtr <> returnedTyp then begin
+                   {writeln('typeMismatch at 33');}
+                   error (typeMismatch);
+                 end;
                  gen(sto, lev-level, adr)
                end
            end;
@@ -1311,7 +1880,7 @@ end;
      end {stmtIdent};
 
 (************************************************************)
-    procedure stmtIf(typ:vType);
+    procedure stmtIf(typ:integer);
       var cx1, cx2: integer;
         begin 
          getsym; 
@@ -1338,7 +1907,7 @@ end;
       end; {stmtIf}
 
 (************************************************************)
-    procedure stmtRepeat(typ:vType);
+    procedure stmtRepeat(typ:integer);
       var cx1: integer;
         begin 
           getsym; 
@@ -1363,10 +1932,10 @@ end;
         end; {stmtRepeat}
 
 (************************************************************)
-    procedure stmtFor(typ:vType);
+    procedure stmtFor(typ:integer);
       var todowntosym: symbol;
       var cx1, cx2: integer;
-      var returnedLHS: vType;
+      var returnedLHS: integer;
 
         begin
           todowntosym:=nul;
@@ -1376,7 +1945,7 @@ end;
               i := position(id);
               if i = 0 then error(idNotFound) else
                 begin
-                if table[i].kind <> varible then
+                if table[i].kind <> var_def then
                   error(varExpected);
                 end;
               getsym;
@@ -1386,10 +1955,10 @@ end;
                   returnedLHS := expression([tosym,downtosym]+fsys,typ);
 
                   {Write('note: stmtFor, first returnedTyp: ');
-                  printvType(returnedLHS);writeln();}
+                  printvtype(returnedLHS);writeln();}
 
 
-                  if table[i].kind = varible then begin
+                  if table[i].kind = var_def then begin
                     {store initial value}
                     with table[i] do gen(sto, lev-level, adr);
                     {this is where we loop back to}
@@ -1407,10 +1976,11 @@ end;
                   returnedTyp := expression([dosym]+fsys,typ);
 
                   {Write('note: stmtFor, second returnedTyp: ');
-                  printvType(returnedTyp);writeln();}
+                  printvtype(returnedTyp);writeln();}
 
                   {type checking}
-                  {if returnedLHS <> returnedTyp then error (typeMismatch);}
+                  {if returnedLHS <> returnedTyp then begin
+                      error (typeMismatch);}
 
                   if todowntosym = tosym then
                     gen(opr,0,13) {tops>=tops+1}
@@ -1451,7 +2021,7 @@ end;
 
 (************************************************************)
 
-      procedure stmtWrite(typ:vType);
+      procedure stmtWrite(typ:integer);
         var writeWriteln: integer;
 
         begin
@@ -1472,14 +2042,18 @@ end;
           end else begin
             {value to print is on the stack}
             returnedTyp := expression([rparen,comma]+fsys,typ);
-            if returnedTyp =  uint16Type then
-            gen(tot,IO_uint16,0)
-            else if returnedTyp = charType then
-            gen(tot,IO_char,0)
-            else begin
 
-            gen(tot,IO_uint16,0);
-            writeln ('in stmtWrite, got a type I have not coded writing for yet');
+            {writeln('stmtWrite, have returned type:',
+               returnedTyp:3,' from param typ:',typ:3);}
+
+            if returnedTyp =  uint16Type then
+              gen(tot,IO_uint16,0)
+            else if returnedTyp = charType then
+              gen(tot,IO_char,0)
+            else begin
+              {hope we can print it out as a uint16???}
+              gen(tot,IO_uint16,0);
+              writeln ('in stmtWrite, got a type I have not coded writing for yet');
             end;
           end;
           until sym <> comma;
@@ -1504,7 +2078,7 @@ end;
       end {stmtWrite};
 
 (************************************************************)
-      procedure stmtWhile(typ:vType);
+      procedure stmtWhile(typ:integer);
       var cx1, cx2: integer;
       begin 
          cx1 := cx; 
@@ -1519,8 +2093,8 @@ end;
       end {stmtWhile};
 
 (************************************************************)
-    procedure stmtPoke(typ:vType);
-      var myvt: vType;
+    procedure stmtPoke(typ:integer);
+      var myvt: integer;
         begin 
          (* char poke(address,value); *)
 {
@@ -1528,7 +2102,7 @@ end;
            error(charExpected);
 }
            
-         {write('stmtPoke, typ '); printvType(typ);}
+         {write('stmtPoke, typ '); printvtype(typ);}
 
          getsym; 
          if sym = lparen then
@@ -1542,7 +2116,7 @@ end;
                  myvt := expression(fsys+[rparen],charType);
                  if myvt <> charType then begin
                    write ('myvt is not chartype, is ');
-                   printvType(myvt);
+                   printvtype(myvt);
                  end;
 
                  gen(opr,0,opr_poke);
@@ -1571,7 +2145,6 @@ end;
 (************************************************************)
 (************************************************************)
    begin {statement}
-     {endsym := nul;}
 
      case sym of
         ident     : stmtIdent();
@@ -1603,7 +2176,7 @@ procedure parameterList(fromWhere:obj);
   {plIdentVars parses one possibly-comma-seperated list}
   procedure plIdentVars();
     var mtx: integer;
-        mtyp: vType;
+        mtyp: integer;
         i : integer;
     begin {plIdentVars}
 
@@ -1627,7 +2200,7 @@ procedure parameterList(fromWhere:obj);
         { copy type into the symbol table}
         for i := mtx to tx do begin
           {writeln('filling in type for table entry ',i:1,table[i].name);}
-          table[i].typ := mtyp;
+          table[i].typePtr := mtyp;
         end;
         getsym;
       end else error (colonExpected);
@@ -1664,13 +2237,13 @@ procedure parameterList(fromWhere:obj);
 
     txOfParamFunc := tx;
     
-    if fromWhere = func then
+    if fromWhere = func_def then
       begin
         {writeln ('parameterList, from a func');}
         {writeln('pl, txOfParma ',txOfParamFunc);}
-        {printvType(table[txOfParamFunc].typ);}
+        {printvtype(table[txOfParamFunc].typ);}
         id:='-rvForMe- ';
-        enter (varible,1);
+        enterVPFC (var_def,1);
         {table[tx].typ :=  table[txOfParamFunc].typ;}
       end;
     {(write ('parameterList, at start tx=',tx:3);
@@ -1693,24 +2266,24 @@ procedure parameterList(fromWhere:obj);
     k := table[txOfParamFunc].kind;
     with table[txOfParamFunc] do 
       case k of
-         constant: begin 
+         const_def: begin 
                    end;
-         varible: begin 
+         var_def: begin 
                   end;
-         proc:
+         proc_def:
                   begin
                     nparams := tx-txOfParamFunc;
                     for pi := 1 to nparams do
                       begin
                         {write ('copying type of param:',pi:2,' name:',
                         table[pi+txOfParamFunc].name, ' type:');
-                        printvType(table[pi+txOfParamFunc].typ);
+                        printvtype(table[pi+txOfParamFunc].typePtr);
                         writeln();}
 
-                        pType[pi] := table[pi+txOfParamFunc].typ;                      
+                        pType[pi] := table[pi+txOfParamFunc].typePtr;                      
                     end;
                   end;
-         func:
+         func_def:
                   begin
                     {same code as proc, but because of the "shadow" return
                      value variable, we alter nparams and initialization
@@ -1721,11 +2294,11 @@ procedure parameterList(fromWhere:obj);
                       begin
                         {write ('copying type of param:',pi:2,' name:',
                         table[pi+txOfParamFunc].name, ' type:');
-                        printvType(table[pi+txOfParamFunc].typ);
+                        printvtype(table[pi+txOfParamFunc].typePtr);
                         writeln();}
 
                         {note the addition of 1 here}
-                        pType[pi] := table[pi+txOfParamFunc+1].typ;                      
+                        pType[pi] := table[pi+txOfParamFunc+1].typePtr;
                     end;
                   end
          end;
@@ -1738,7 +2311,9 @@ procedure parameterList(fromWhere:obj);
 
 
 begin {block} 
-   
+   {if this is the main, (ie not a proc or func) this will be set}   
+   mainBody := -1;
+
    {writeln ('beginning of block,tx:',tx:2,'nparams',table[tx].nparams);}
 
    { begin block - tx is the index of possibly a function or procedure
@@ -1746,39 +2321,65 @@ begin {block}
     (stack, static link, dynamic link) but also the number of parameters
     that the procedure/function call put on the stack}
 
-   if parentType = func then 
+   dx := 0;
+   if parentType = func_def then 
      dx := DlSlRa_func + table[tx].nparams+1
-   else 
+   else if parentType = proc_def then
      dx := DlSlRa_proc + table[tx].nparams;
 
    {writeln ('beginning block, now dx=',dx:2,' tx=',tx:2);}
    tx0:=tx; 
    vs :=tx;
 
-   { for fixing up later}
-   table[tx0].adr:=cx; 
+   if (parentType = func_def) or (parentType = proc_def) then
+     begin
+     {call address of function}
+     table[tx0].adr:=cx; 
+     end
+   else
+     begin
+       {writeln('assuming this is the main, as it is not a proc or func:',
+          cx);}
+     mainBody := cx;
+   end;
+
+   {this jumps around other nested code, such as procedures}
+   {or, the jump to the main body}
    gen(jmp,0,0);
 
    {now, add in the parameters, so they are seen, if any exist}
-   {printTable;}
-
-
    {tx - table index is incremented, if we have funcs/procedures 
     with parameters. These are now visible in this level}
    {note that with functions, we have the "shadow" return value,
     so we need to add 1 to take that into account}
 
-   {write('block, incrementing tx from ',tx:2,' to '); }
+   if (parentType = proc_def) or (parentType = func_def) then 
    tx := tx + table[tx0].nparams;
-   if parentType = func then tx:= tx+1;
+   if parentType = func_def then tx:= tx+1;
 
-   {writeln(tx,' (at beginning of block)'); }
+   {writeln(tx,' (at beginning of block)'); 
+   printTable;}
 
 
    if lev > levmax then error(procedureLevel);
 
    repeat
      {write('beginning of repeat in block, lev ',lev:2, ' sym ');printSym(sym);}
+      {TYPES}
+      if sym = typesym then
+      begin getsym;
+         repeat typedeclaration;
+            while sym = comma do
+               begin getsym; typedeclaration
+               end;
+            if sym = semicolon then getsym else error(semicolonExpected);
+
+            {if we have another type keyword, we are still parsing types}
+            if sym = typesym then getsym;
+         until sym <> ident
+      end;
+
+
       {CONSTANTS}
       if sym = constsym then
       begin getsym;
@@ -1816,8 +2417,8 @@ begin {block}
                 for i := vs to tx do
                   begin 
                     {write ('fixing up table ',i,' to '); 
-                     printvType(varType); writeln;}
-                    table[i].typ := varType;
+                     printvtype(varType); writeln;}
+                    table[i].typePtr := varType;
                   end;
                 vs := tx+1; {move the table index along}
                 getsym;
@@ -1837,13 +2438,13 @@ begin {block}
       {PROCEDURES FUNCTIONS}
       if sym in [procsym,funcsym] then
       begin 
-        if sym = procsym then procFunc := proc
-        else procFunc := func;
+        if sym = procsym then procFunc := proc_def
+        else procFunc := func_def;
 
         getsym;
          if sym = ident then
             begin 
-              enter(procFunc,0); 
+              enterVPFC (procFunc,0); 
               getsym 
             end
          else error(identifierExpected);
@@ -1854,24 +2455,24 @@ begin {block}
          funcEntry := tx;
           
          dxSaved := dx;
-         if procFunc = proc then dx := DlSlRa_proc
+         if procFunc = proc_def then dx := DlSlRa_proc
          else dx := DlSlRa_func;
 
          parameterList(procFunc);
          dx := dxSaved;
 
          {functions must have a type}
-         if procFunc = func then
+         if procFunc = func_def then
            begin
              {writeln ('scanning function for a type');}
              if sym = colon then 
                begin
                 getsym;
                 varType := getType(sym);
-                table[tx].typ := varType;
+                table[tx].typePtr := varType;
 
                 {update the "shadow" assignment variable}
-                table[funcEntry+1].typ := table[tx].typ;
+                table[funcEntry+1].typePtr := table[tx].typePtr;
 
                 {printTable;}
 
@@ -1900,33 +2501,40 @@ begin {block}
 
    {-----------------}
    {tidy up the jump operation to bypass this code until called}
+{
    code[table[tx0].adr].ax := cx;
+}
    {writeln('tidyup lev:',lev:1,' tx0:',tx0:0,' cx',cx:2);}
-   with table[tx0] do
-      begin adr := cx; {start adr of code}
-      end;
+   if mainBody>=0 then begin
+     {writeln ('mainbody at:',mainBody:2,' should jump to:',cx:3);}
+     with code[mainbody] do
+       ax := cx;
+     end
+   else 
+     code[table[tx0].adr].ax := cx;
 
    {printTable;}
 
-   cx0 := 0{cx}; gen(int, 0, dx);
+   gen(int, 0, dx);
    statement([semicolon, endsym]+fsys);
 
    (* either a return or end of program, which is it? *)
    if lev > 0 then
      begin
-       if parentType = func then
+       if parentType = func_def then
          gen(ret, 1, 0) {return}
        else
          gen(ret, 0, 0) {return}
      end
    else 
-     gen (xit, 0, 0); {exit program}
+     begin
+       gen (xit, 0, 0); {exit program}
+       {listcode;}
+     end;
 
    test(fsys, [], blockEnd);
 
    {write('end of block, sym:');printSym(sym);}
-   printTable;
-   listcode;
 end {block};
 
 
@@ -2099,13 +2707,20 @@ begin writeln(' start TinyPascal');
 
            opr_peek: begin {14, peek}
                 {write(' peek[',s[tops]:4,'] is ');}
-                s[tops] := peekPokeMem[s[tops]];
+                if (s[tops]<0) or (s[tops]>peekPokeMemSize) then begin
+                  writeln('opr_peek, request out of bounds:',s[tops]);
+                  s[tops] := 147; 
+                end 
+                else s[tops] := peekPokeMem[s[tops]];
                 {writeln(s[tops]:3);}
            end;
 
            opr_poke: begin {15, poke}
                 tops := tops -2;
-                peekPokeMem[s[tops+1]] := s[tops+2];
+                if (s[tops+1]<0) or (s[tops+1]>peekPokeMemSize) then begin
+                  writeln('opr_poke, request out of bounds:',s[tops+1]);
+                end else 
+                  peekPokeMem[s[tops+1]] := s[tops+2];
                 {writeln ('poked ',s[tops+2], ' into ',s[tops+1]);}
            end;
                 
@@ -2195,13 +2810,21 @@ begin {main program}
   constCharArray[2] := #$00;
   constCharIndex := 3;
 
+
+  {built-in types}
+  {uint16}
+  {char}
+  {boolean, with false and true consts}
+  loadBuiltinTypes;
+
+
   for ch := chr(0) to chr(255) do ssym[ch] := nul;
    
   word[ 1] := 'and       '; wsym[ 1] := andsym;
   word[ 2] := 'array     '; wsym[ 2] := arraysym;
   word[ 3] := 'begin     '; wsym[ 3] := beginsym;
   word[ 4] := 'case      '; wsym[ 4] := casesym;
-  word[ 5] := 'char      '; wsym[ 5] := charsym;
+  word[ 5] := 'chr       '; wsym[ 5] := chrsym;
   word[ 6] := 'const     '; wsym[ 6] := constsym;
   word[ 7] := 'div       '; wsym[ 7] := divsym;
   word[ 8] := 'do        '; wsym[ 8] := dosym;
@@ -2211,22 +2834,24 @@ begin {main program}
   word[12] := 'for       '; wsym[12] := forsym;
   word[13] := 'function  '; wsym[13] := funcsym;
   word[14] := 'if        '; wsym[14] := ifsym;
-  word[15] := 'int16     '; wsym[15] := int16sym;
-  word[16] := 'mod       '; wsym[16] := modsym;
-  word[17] := 'not       '; wsym[17] := notsym;
-  word[18] := 'or        '; wsym[18] := orsym;
+  word[15] := 'mod       '; wsym[15] := modsym;
+  word[16] := 'not       '; wsym[16] := notsym;
+  word[17] := 'or        '; wsym[17] := orsym;
+  word[18] := 'ord       '; wsym[18] := ordsym;
   word[19] := 'peek      '; wsym[19] := peeksym;
   word[20] := 'poke      '; wsym[20] := pokesym;
-  word[21] := 'procedure '; wsym[21] := procsym;
-  word[22] := 'repeat    '; wsym[22] := repeatsym;
-  word[23] := 'then      '; wsym[23] := thensym;
-  word[24] := 'to        '; wsym[24] := tosym;
-  word[25] := 'uint16    '; wsym[25] := uint16sym;
-  word[26] := 'until     '; wsym[26] := untilsym;
-  word[27] := 'var       '; wsym[27] := varsym;
-  word[28] := 'while     '; wsym[28] := whilesym;
-  word[29] := 'write     '; wsym[29] := writesym;
-  word[30] := 'writeln   '; wsym[30] := writelnsym;
+  word[21] := 'pred      '; wsym[21] := predsym;
+  word[22] := 'procedure '; wsym[22] := procsym;
+  word[23] := 'repeat    '; wsym[23] := repeatsym;
+  word[24] := 'succ      '; wsym[24] := succsym;
+  word[25] := 'then      '; wsym[25] := thensym;
+  word[26] := 'to        '; wsym[26] := tosym;
+  word[27] := 'type      '; wsym[27] := typesym;
+  word[28] := 'until     '; wsym[28] := untilsym;
+  word[29] := 'var       '; wsym[29] := varsym;
+  word[30] := 'while     '; wsym[30] := whilesym;
+  word[31] := 'write     '; wsym[31] := writesym;
+  word[32] := 'writeln   '; wsym[32] := writelnsym;
 
   ssym[ '+'] := plus;       ssym[ '-'] := minus;
   ssym[ '*'] := times;      ssym[ '/'] := slash;
@@ -2254,9 +2879,10 @@ begin {main program}
   omnemonic[stk] := '  OPSTK';   omnemonic[ver] := '  OPVER';
 
 
-  declbegsys := [constsym, varsym, procsym, funcsym];
+  declbegsys := [typesym, constsym, varsym, procsym, funcsym];
   statbegsys := [beginsym, ifsym, whilesym, repeatsym, forsym,pokesym];
-  facbegsys  := [ident, number, charstring, peeksym, lparen, notsym];
+  facbegsys  := [ident, number, charstring, peeksym, lparen, notsym,
+                ordsym,predsym,succsym];
   termbegsys := [times,slash,divsym,modsym,andsym];
   simpexsys  := [plus, minus, orsym];
   exprbegsys := [eql, neq, lss, leq, gtr, geq];
@@ -2273,10 +2899,12 @@ begin {main program}
   gen(ver,0,48*256+52);
 
 
-  block(0, 0, onbekend, [period]+declbegsys+statbegsys);
+  block(startingLevel, 
+     numReservedTypes -1 {does a pre increment, so subtract 1 here}, 
+     onbekend, [period]+declbegsys+statbegsys);
   if sym <> period then error(periodExpected);
   if errcount=0 then begin
-    {interpret;}
+    interpret;
     outToAssembler;
   end else write(' errors in TinyPascal program');
 
