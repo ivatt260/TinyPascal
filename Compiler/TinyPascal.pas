@@ -18,6 +18,8 @@ program TinyPascal(input,output);
 
 (*
 
+Feb14 2025: mistake on main block; look for DlSlRa_main for fix. :-|
+
 Feb 10 2025: 
 	- typing should work.
 	- added in pre-defined types, and true and false
@@ -113,6 +115,9 @@ label 99;
 	   maxparams=10;      {max number of params for func/proc}
            numReservedTypes=7;{the number of reserved types}
            startingLevel=0;   {block starting level, keep at 0}
+                
+           DlSlRa_main = 3;   {stack space for dynamic link, static
+                               link and return address for main body}
 
 	   DlSlRa_proc = 3;   {stack space for dynamic link, static
 			       link and return address for procedures}
@@ -2325,7 +2330,8 @@ begin {block}
    if parentType = func_def then 
      dx := DlSlRa_func + table[tx].nparams+1
    else if parentType = proc_def then
-     dx := DlSlRa_proc + table[tx].nparams;
+     dx := DlSlRa_proc + table[tx].nparams
+   else dx := DlSlRa_main;
 
    {writeln ('beginning block, now dx=',dx:2,' tx=',tx:2);}
    tx0:=tx; 
