@@ -1,10 +1,22 @@
 Tests.
+------
 
 maze3a:
   Go through a maze; find path from start to end.
   A recursive program; highlighting peek, poke, and writeln. 
+  It is compiled to be loaded at memory 8800. If your RAM is 
+  in lower memory, you'll need to recompile and reassemble this.
+
+
+biggerMaze: a bigger maze than maze3a; takes a few seconds longer
+to run.
 
 files in this directory:
+------------------------
+
+biggerMaze.mod:
+              A bigger maze. Follow the directions for "maze3a.mod"
+              below to see how to the compile for this works.
 
 maze3a.mod  : TinyPascal maze program source. 
               I use the ".mod" file type to 
@@ -14,16 +26,17 @@ maze3a.mod  : TinyPascal maze program source.
               of ".mod". 
 
               Note that this uses "Peek" and "Poke" to direct
-              memory access, and this file is set up to use
-              0xA000; Kelly Loyd reported using 0x2000 in his 
-              ROM in High Address Space MemberSHIP card. Change
-              the address in the maze3a.mod, then recompile, and
-              reassemble the resulting ".asm" file, to create
-              the .hex file at the correct memory partition.
+              memory access. It tries to find RAM at low memory
+              or higher memory; hopefully this works for you.
 
-              Execute this by (say) "TinyPascal < maze3a.mod" this
+              If not, Change the addresses in the maze3a.mod, then
+              recompile, and reassemble the resulting ".asm" file, 
+              to create the .hex file at the correct memory partition.
+
+              Compile this by (eg) "TinyPascal < maze3a.mod" this
               results in the file "assemblerOut.asm" - copy this
-              manually to "maze3a.asm".
+              manually to "maze3a.asm" and assemble with a18 - see
+              the script example below.
 
 maze3a.txt  : a simple script file to compile maze3a.asm into
               maze3a.hex. You'll have to change this to suit

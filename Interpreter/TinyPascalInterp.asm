@@ -20,6 +20,9 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+; Feb 11 2025
+; shrinking pcode size by removing unused fields in each instruction.
+;
 ;
 ; Jan 4 2025
 ; HELLOSTRING printing moved up a bit, so the interpreter
@@ -135,9 +138,9 @@ GETBASE    	EQU 008H ; Interpreter get base function
 CURFRAME_DYNAM_LINK   	EQU 001H ; current top "frame" for variables on stack 
 
 ; temp registers
-TPTMP0		EQU 000H ; tmp register for PL0 interpreter
-TPTMP1		EQU 009H ; tmp register for PL0 interpreter
-TPTMP2		EQU 00AH ; tmp register for PL0 interpreter
+TPTMP0		EQU 000H ; tmp register for TinyPascal interpreter
+TPTMP1		EQU 009H ; tmp register for TinyPascal interpreter
+TPTMP2		EQU 00AH ; tmp register for TinyPascal interpreter
 BASE_RET_STATIC_LINK		EQU TPTMP2 ; return variable address in stack
 TPTMP3		EQU 00BH ; 8-bit tmp register can be used in B.1
 		; *NOTE* B.0 is used in SCRT Char out routines.
@@ -152,41 +155,31 @@ SERPARAM   	EQU 00EH ;MC20ANSA uses E.0 for sw serial parameters
 ;	SL - Static Link
 
 ; OPCODES 
-;    lit   0,a  :  load constant a
-;    opr   0,a  :  execute operation a
-;    lod   l,a  :  load varible l,a
-;    sto   l,a  :  store varible l,a
-;    cal   l,a  :  call procedure a at level l
-;    int   0,a  :  increment t-register by a
-;    jmp   0,a  :  jump to a
-;    jpc   0,a  :  jump conditional to a   
-;    xit   0,a  :  exit the program and return to monitor (JAS addition)
-;    ret   x,a  :  procedure return if x=0; function return if x=1
-;    txout x,a  :  x=type, a=address or data (string or uint)
-;    txin  x,a  :  not coded yet...
-;    stk        :  stack manipulation for procedure/func parameters.
-;    
+; See the TinyPascal compiler, updated Feb 11 2025
 ;
-; for Interpreter, each OPCODE takes 4 bytes:
+; for Interpreter, each OPCODE takes up to 4 bytes:
 ;    1   : OPCODE,
 ;    2   : LEVEL,
 ;    3,4 : ADDRESS
 
-OPLIT      EQU 000H
-OPOPR      EQU 001H
-OPLOD      EQU 002H
-OPSTO      EQU 003H
-OPCAL      EQU 004H
-OPINT      EQU 005H
-OPJMP      EQU 006H
-OPJPC      EQU 007H
-OPXIT      EQU 008H
-OPRET      EQU 009H
-TXOUT      EQU 00AH
-TXTIN      EQU 00BH
-OPSTK      EQU 00CH
-OPVER      EQU 00DH
 
+OPVER      EQU 000H 
+OPLIT      EQU 001H 
+OPLOD      EQU 002H
+OPSTO      EQU 003H 
+OPOPR      EQU 004H 
+BBOUND     EQU 005H   
+OPSTK      EQU 006H 
+OPINT      EQU 007H
+OPPCAL     EQU 008H 
+OPFCAL     EQU 009H 
+OPPRET     EQU 00AH   
+OPFRET     EQU 00BH 
+OPJMP      EQU 00CH
+OPJPC      EQU 00DH
+TXOUT      EQU 00EH
+TXTIN      EQU 00FH
+OPXIT      EQU 010H
 
 ;;;;;;;;;;;;;;;;;;
 ; trying different call/return stack arrangements
@@ -200,6 +193,10 @@ ORIGSTACKCODE	EQU 0
 ; Choose one of these to set the RAM block for us to go into
 ; MEMBERCHIP rom is at 0x0000, ram starts at 0x8000
 ; MEMBERSHIP rom is at 0x0000, ram starts at 0x0000
+;
+; Note that, it appears that on running the Emma-O2 emulator that some
+; high ROM memory is used, so the STACKST has about 128 bytes reserved
+; for that.
 
 MEMBERSHIP EQU     0 ; 1 == memberSHIP card - must set MC20ANSA as well.
 MEMBERCHIP EQU     1 ; 1 == memberCHIP card - must set MC20ANSA as well.
@@ -219,7 +216,7 @@ MC20ANSA   EQU     1
 ; MemberCHIP card: RAM at 8000H
 ORGINIT    EQU     08000H
 ROMISAT    EQU     0
-STACKST	EQU	0FFFFH
+STACKST	EQU	0FF7FH
 	ENDI ; memberCHIP card
 
 	IF MEMBERSHIP
@@ -227,7 +224,7 @@ STACKST	EQU	0FFFFH
 ; MemberSHIP card: RAM at 0000H
 ORGINIT     EQU    0
 ROMISAT     EQU     08000H
-STACKST	EQU	07FFFH
+STACKST	EQU	07F7FH
 	ENDI ; memberSHIP card
 
 	IF MC20ANSA
@@ -241,6 +238,8 @@ COLD_START	EQU 00B00H + ROMISAT
 MC20SREG 	EQU	0EH ; where serial parameters are stored for the Monitor
 	ENDI
 
+; where the users' program should reside
+PLPROG EQU     ORGINIT + 0800H
 ; PAGES
 PAGE1 EQU     ORGINIT + 0100H
 PAGE2 EQU     ORGINIT + 0200H
@@ -277,7 +276,7 @@ PAGE6 EQU     ORGINIT + 0600H
 	LDI     LOW SCRT_RETURN
 	PLO     SCRTRETN
 
-	; PL0 Interpreter program main 
+	; TinyPascal Interpreter program main 
 	LDI     HIGH INTERPST
 	PHI     SCRTPC
 	LDI     LOW INTERPST
@@ -307,13 +306,13 @@ FIN_HELLO_STR
 	; done the "HELLLLO!" string, now put the stack 
 	; and registers into "interpret" mode.
 
-	; PL0 "Program Counter"
+	; TinyPascal "Program Counter"
 	LDI     HIGH PLPROG
 	PHI     TPASPC
 	LDI     LOW PLPROG
 	PLO     TPASPC
 	
-	; PL0 Base function
+	; TinyPascal Base function
 	LDI	HIGH	BASEFUNC
 	PHI	GETBASE
 	LDI	LOW	BASEFUNC
@@ -397,7 +396,7 @@ SCRT_RETURN
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-MY_VERSION	EQU	'04'		; for checking, also doubles as visual indicator
+MY_VERSION	EQU	'05'		; for checking, also doubles as visual indicator
 
 ; HELLOSTRING. Version number is encoded as year month day
 
@@ -419,10 +418,10 @@ HELLOSTRING
 	DB	'5'
 	DB	'-'
 	DB	'0'
-	DB	'1'
+	DB	'2'
 	DB	'-'
-	DB	'0'
-	DB	'4'
+	DB	'1'
+	DB	'1'
 	DB	' '
 	DB	'V'
 	DW	MY_VERSION
@@ -515,13 +514,6 @@ VERSION_BAD
 	DB	0DH
 	DB	0AH
 	DB	0
-;NOVERSION_OK
-;NO	DB	'O'
-;NO	DB	'K'
-;NO	DB	'!'
-;NO	DB	0DH
-;NO	DB	0AH
-;NO	DB	0
 
 
 
@@ -542,27 +534,27 @@ VERSION_BAD
 ; run the specific opcode.
 
 ; OPCODE jump table
-	BR OPLITCODE ;	EQU 000H
-	BR OPOPRJMP  ;	EQU 001H
-	BR OPLODCODE ;	EQU 002H
-	BR OPSTOCODE ;	EQU 003H
-	BR OPCALCODE ;	EQU 004H
-	BR OPINTCODE ;	EQU 005H
-	BR OPJMPCODE ;	EQU 006H
-	BR OPJPCCODE ;	EQU 007H
-	BR OPXITJMP  ;	EQU 008H
-	BR OPRETJMP  ;	EQU 009H
-	BR OPTXOJMP  ;	EQU 00AH
-        BR OPTXIJMP  ;  EQU 00BH
-        BR OPSTKJMP  ;  EQU 00CH
-        BR OPVERJMP  ;  EQU 00DH
+	BR       OPVERJMP   ;   EQU 000H 
+	BR       OPLITCODE  ;   EQU 001H 
+	BR       OPLODCODE  ;   EQU 002H
+	BR       OPSTOCODE  ;   EQU 003H 
+	BR       OPOPRJMP   ;   EQU 004H 
+	BR       BBOUNDJMP  ;   EQU 005H   
+	BR       OPSTKJMP   ;   EQU 006H 
+	BR       OPINTCODE  ;   EQU 007H
+	BR       OPPCALCODE ;   EQU 008H 
+	BR       OPFCALCODE ;   EQU 009H 
+	BR       OPPRETJMP  ;   EQU 00AH   
+	BR       OPFRETJMP  ;   EQU 00BH 
+	BR       OPJMPCODE  ;   EQU 00CH
+	BR       OPJPCCODE  ;   EQU 00DH
+	BR       OPTXOJMP   ;   EQU 00EH
+	BR       OPTXIJMP   ;   EQU 00FH
+	BR       OPXITJMP   ;   EQU 010H
 
 	; fill in a few more, maybe will catch an error?
 	; we can fill this page up, might help... :-|
 
-	BR OPOPRBAD  ;   empty - not implemented yet
-	BR OPOPRBAD  ;   empty - not implemented yet
-	BR OPOPRBAD  ;   empty - not implemented yet
 	BR OPOPRBAD  ;   empty - not implemented yet
 	BR OPOPRBAD  ;   empty - not implemented yet
 	BR OPOPRBAD  ;   empty - not implemented yet
@@ -579,8 +571,7 @@ VERSION_BAD
 INTERP
 	; get OPCODE
 
-	LDA	TPASPC	; get the opcode
-	SHL		; multiply by 2
+	LDA	TPASPC	; get the opcode pre-multiplied by 2
 	PLO	SCRTPC	; jump to it ("it" is a short branch) 
 
 	; for intsructions that do not fit onto this code page,
@@ -593,8 +584,12 @@ OPTXOJMP	LBR	OPTXOUT	  ;	 EQU 00AH
 OPTXIJMP	LBR	OPTXIN	  ;	 EQU 00AH
 OPXITJMP	LBR	OPXITCODE ;	 EQU 008H
 OPSTKJMP	LBR	OPSTKCODE ;      EQU 00CH
-OPRETJMP	LBR	OPRETCODE ;	 EQU 009H
+OPPRETJMP	LBR	OPPRETCODE ;	 EQU 009H
+OPFRETJMP	LBR	OPFRETCODE ;	 EQU 009H
 OPVERJMP	LBR	OPVERCODE ;      EQU 00DH
+
+; bound checking not implemented yet.This is a place holder
+BBOUNDJMP
 
 OPOPRBAD
 	; if here, something wrong
@@ -608,10 +603,10 @@ OPOPRBAD
 OPLITCODE
 	;    t := t+1; s[t] = a
 	;    DB OPLIT
-	;    DB 0
+	;    IGNORE DB 0
 	;    DW 20
-	; get level - ignore this
-	LDA     TPASPC
+	; IGNORE get level - ignore this
+	; IGNORE LDA     TPASPC
 	;get  address
 	; push high byte then low byte, eg DW 020H push 00 then 20
 	LDA     TPASPC
@@ -716,7 +711,8 @@ STOSUB_NOCARRY
 	BR      INTERP
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-OPCALCODE
+OPPCALCODE
+OPFCALCODE
 ;
 ; stack after the call:
 ;
@@ -745,8 +741,8 @@ OPCALCODE
 	PLO	TPTMP1
 
 
-	; get level
-	LDA     TPASPC
+	; IGNORE get level
+	;IGNORE  LDA     TPASPC
 	
 	; the first 3 parameters are saved on
 	; the stack! The Interpreter must leave
@@ -824,11 +820,11 @@ OPINTCODE
 	; t=t+a;
 	; shift A by 2 on conversion before here,
 	; just decrement stack pointer.
-	; eg, if PL0 OPCODE was INT 0 4
+	; eg, if TinyPascal OPCODE was INT 0 4
 	;     make that OPINT DB 0 DW (4 SHL 1) = 8
 
-	; get level (skip past)
-	LDA     TPASPC
+	;IGNORE ; get level (skip past)
+	;IGNORE LDA     TPASPC
 
 	; ok to subtract (create space) on stack
 	; Currently X points to STACKREG,
@@ -864,8 +860,8 @@ OPJMPCODE
 	; PC = A
 	; but have to shift address <<2
 
-	; get level - unused
-	LDA     TPASPC
+	;IGNORE ; get level - unused
+	;IGNORE LDA     TPASPC
 
 	;get  address
 	LDA     TPASPC
@@ -880,8 +876,8 @@ OPJMPCODE
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 OPJPCCODE
-	; get level - not used
-	LDA     TPASPC
+	;IGNORE ; get level - not used
+	;IGNORE LDA     TPASPC
 
 	; pop the conditional
 	; pop top of stack, and store it in TPTMP0
@@ -971,6 +967,7 @@ JPC_CONT
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 OPOPRCODE
 	; pop top of stack, and store it in TPTMP0
 	INC STACKREG
@@ -982,21 +979,15 @@ OPOPRCODE
 	; go through the OPCODE, and find the operation to
 	; work on the value in TPTMP0
 
-	; return value from test - 1 is true, 0 false.
-
-	; skip level
-	;get 2nd byte of  address which is operation
-	LDA     TPASPC	; the "lv" level, not used.
-	LDA     TPASPC	; high byte of opdata, not used.
-	LDA     TPASPC	; low byte of opdata, contains version in ASCII char.
+	;get 2nd byte which is the operation
+	LDA     TPASPC	; the "lv" level, pre-shifted for quick jump
 
 	; D now contains the operation
-	; SHL left it twice, to get the 4 byte LBR+NOP branch instruction
-	SHL
-	SHL
+	; pre-shifted left twice, to get the 4 byte LBR+NOP branch instruction
 	; and put it into SCRTPC to do the JMP
 	PLO	SCRTPC
 	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 OPR_VERSION
 OPR_NEG		; Only have uints, so can't "negate"
 OPR_UODD
@@ -1009,7 +1000,7 @@ OPR_UODD
 	LBR	TX_FIN_LOOP
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; make PL0 code at a page boundary.
+; make TinyPascal code at a page boundary.
 	ORG	PAGE3
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1233,7 +1224,7 @@ ULEQFALSE
 	LBR	OPR_COMMON_RETURN
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; make PL0 code at a page boundary.
+; make TinyPascal code at a page boundary.
 	ORG	PAGE4
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 OPR_UMOD
@@ -1526,7 +1517,7 @@ OPR_COMMON_RETURN
 
 
 
-; make PL0 code at a page boundary.
+; make TinyPascal code at a page boundary.
 	ORG	PAGE5	
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1667,7 +1658,6 @@ UNOT_END
 ;	to peek
 OPR_PEEK
 	; get the data this points to
-	;LDN	TPTMP0
 	SEX	TPTMP0
 	LDX
 	PLO	TPTMP1
@@ -1786,8 +1776,8 @@ OPVERCODE
 	; hard-coded in MY_VERSION.
 	; note that the "stack" data is put in TPTMP0 already.
 
-	; get level - ignore this
-	LDA     TPASPC
+	; IGNORE ; get level - ignore this
+	; IGNORE LDA     TPASPC
 	;get  address
 	; push high byte then low byte, eg DW 020H push 00 then 20
 	LDA     TPASPC
@@ -1993,8 +1983,17 @@ EX30
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-OPRETCODE
 	;      ret: begin
+OPFRETCODE
+	; function sets flag to 01
+	LDI	01
+	BR	OPRCONT
+OPPRETCODE
+	; procedure sets flag to 00
+	LDI	00
+OPRCONT
+
+	PHI	TPTMP3
 	;             if lv=1 then
 	;               begin
 	;                 {write ('returning a function value... dynamicLink:',dynamicLink:3);}
@@ -2018,12 +2017,6 @@ OPRETCODE
 	;               end;
 	;           end;
 	
-	; we now have procedure and function returns, the "level" 
-	; field tells us which we need to do. 
-	LDA	TPASPC
-	PHI	TPTMP3
-	;NO	BZ	RET_SKIP_GET_RV
-
 	; The current frame is stored in CURFRAME_DYNAM_LINK, (R1).
 	; We don't keep track of how many local variables
 	; we have on the stack, so for return, we reference
@@ -2035,6 +2028,13 @@ OPRETCODE
 	; On entry, X-2 -> the stack pointer.
 	
 	SEX	CURFRAME_DYNAM_LINK
+
+	; Stack pointer for after return, it is the CURFRAME_DYNAMIC_LINK
+	; so, make it so. 
+	GHI	CURFRAME_DYNAM_LINK
+	PHI	STACKREG
+	GLO	CURFRAME_DYNAM_LINK
+	PLO	STACKREG
 
 	; go and get the "dynamic link" which is the frame
 	; of the caller. 
@@ -2082,22 +2082,6 @@ RET_SKIP_GET_RV
 	PHI	CURFRAME_DYNAM_LINK
 	GLO	TPTMP1
 	PLO	CURFRAME_DYNAM_LINK
-
-	; if this is a procedure, stack needs decrementing by 6 
-	; if a function, top 2 bytes get stored, then end up
-	; on the stack...
-	; 
-	; reverse a pcode "INT 3"
-	; - first 3 16-bit words are DL,SL,RA...
-	; as per EVERY function or procedure, which we are
-	; finishing, so increment the  
-	; stack to the end of these.
-	INC 	STACKREG
-	INC 	STACKREG
-	INC 	STACKREG
-	INC 	STACKREG
-	INC 	STACKREG
-	INC 	STACKREG
 
 	; put X back to STACKREG
 	SEX	STACKREG
@@ -2177,51 +2161,4 @@ BASELOOPDOWN:
 	PHI	BASE_RET_STATIC_LINK
 	BR	BASELOOPDOWN
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; sample PL0 program output. 
-; See byte description at top of file for format, and
-; the Wirth PL/0 compiler for OP code meanings.
-
-; May 21 - note:
-; 	1. Jump Addresses have <<2 added, because then the addresses
-;	   address 4 byte opcodes, on an 8-bit architecture;
-;	2. Addresses are absolute; and on 256 byte boundaries;
-;	3. Original interpreter from book did a OPR 0 0 (i.e. a return)
-;	   so each opcode process needed a check for end of program;
-;          adding an "exit" opcode removes the need for this check.
- 
-; make PL0 code at a page boundary.
-PLPROG EQU     ORGINIT + 0800H
-	ORG	PLPROG
-
-; a simple program so that, if you run the Interpreter without actually
-; loading a program from the Tiny Pascal compiler, it'll not do anything
-; really bad.
-
-;	    0  jmp  0    1
-	    DB OPJMP 
-	    DB 0 
-	    DW PLPROG + (1 SHL 2) ; SHL 2 because each OPCODE is 4 bytes
-
-;	    1  int  0    4
-	    DB OPINT 
-	    DB 0 
-	    DW (4 SHL 1) ; SHL 1 because stack pointer is 2 bytes
-
-;	    2  lit  0  ...
-	    DB OPLIT
-	    DB 0
-	    DW 10; 256		;10
-
-; 	    3  sto 0 3
-	    DB OPSTO
-	    DB 0
-	    DW (3 SHL 1) ; SHL because ints are 2 bytes long
-
-; 	   4  end
-;	   opr  0    0
-	    DB OPXIT
-	    DB 0
-	    DW 0
 	END

@@ -18,8 +18,6 @@ program TinyPascal(input,output);
 
 (*
 
-Feb14 2025: mistake on main block; look for DlSlRa_main for fix. :-|
-
 Feb 10 2025: 
 	- typing should work.
 	- added in pre-defined types, and true and false
@@ -115,9 +113,9 @@ label 99;
 	   maxparams=10;      {max number of params for func/proc}
            numReservedTypes=7;{the number of reserved types}
            startingLevel=0;   {block starting level, keep at 0}
-                
-           DlSlRa_main = 3;   {stack space for dynamic link, static
-                               link and return address for main body}
+
+	   DlSlRa_main = 3;   {stack space for dynamic link, static
+			       link and return address for main body}
 
 	   DlSlRa_proc = 3;   {stack space for dynamic link, static
 			       link and return address for procedures}
@@ -208,24 +206,32 @@ label 99;
     obj = (const_def,type_def,var_def,proc_def,func_def,onbekend);
     symset = set of symbol;
 
-    fct = (lit,opr,lod,sto,cal,int,jmp,jpc,ret,tot,tin,xit,stk,ver);   {functions}
+    {PCode functions}
+    fct = (ver, lit, lod, sto, opr, bbnd,
+           stk, int, pcal, fcal, pret, fret,
+           jmp, jpc, tot, tin, xit);
+
     instruction = packed record
+                     createLabel: boolean;   {if true create label}
                      fn: fct;           {function code}
                      lv: 0..levmax;     {level}
                      ax: 0..amax        {displacement address}
                   end;
-{   lit 0,a  :  load constant a
-    opr 0,a  :  execute operation a
+
+{table likely needs revamping; see fct and code for more}
+{XXX edits needed!}
+{   lit x,a  :  load constant a
+    opr x,a  :  execute operation a
     lod l,a  :  load varible l,a
     sto l,a  :  store varible l,a
     cal l,a  :  call procedure a at level l
-    int 0,a  :  increment t-register by a
-    jmp 0,a  :  jump to a
-    jpc 0,a  :  jump conditional to a
-    ret 0,a  :  return from a procedure call
-    tot 0, a : write out a number/string to the output stream
-    tin 0, a : read in a number/string from the input stream.
-    xit 0,a  :  exit the program.   
+    int l,a  :  increment t-register by a
+    jmp x,a  :  jump to a
+    jpc x,a  :  jump conditional to a
+    ret x,a  :  return from a procedure call
+    tot x, a : write out a number/string to the output stream
+    tin x, a : read in a number/string from the input stream.
+    xit x,a  :  exit the program.   
     stk l,a  :  increment/decrement stack by a words (16 bits)
 }
 
@@ -283,14 +289,45 @@ var ch: char;         {last character read}
 
 (********************************************************)
 procedure outToAssembler;
-
-
+  type instr = set of fct;
   var i: integer;
   var tfOut: Text;
+  var instr1, instr2, instr3, instr4: instr;
 
+  {flag lines for jumps, calls, etc label printing}
+  procedure genLabelFlags;
+    var i: integer;
+    begin
+
+    {writeln('genLabelFlags starting');}
+    for i := 0 to cx-1 do
+      with code[i] do
+        if fn in [fcal,pcal,jpc,jmp] then    
+begin
+{writeln ('setting genLabelFlags true for ',i:4,ax:4);}
+          code[ax].createLabel := true;
+end;
+    end;
+     
   begin {list code generated for this block}
+    {mnemonic, level, ax}
+    instr4 := [lod, sto,tot,stk]; 
+
+    {mnemonic, ax}
+    instr3 := [lit,ver,bbnd,pcal,fcal,int,jmp,jpc];
+
+    {mnemonic, level}
+    instr2 := [opr];
+
+    {mnemonic only}
+    instr1 := [pret,fret,tin,xit];
+
     Assign (tfOut,'assemblerOut.asm');
     rewrite(tfOut);
+
+    {tag lines for labels, if required}
+    genLabelFlags;
+
     writeln(tfOut,'; created from TinyPascal 1802 compiler');
     writeln(tfOut);
     writeln(tfOut,';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;');
@@ -327,20 +364,27 @@ procedure outToAssembler;
     writeln(tfOut,'STACKST	EQU	07EFFH	; note: 7Fxx last lines used by MemberSHIP monitor');
     writeln(tfOut,'	ENDI ; memberSHIP card');
     writeln(tfOut,'');
-    writeln(tfOut,'OPLIT      EQU 000H');
-    writeln(tfOut,'OPOPR      EQU 001H');
-    writeln(tfOut,'OPLOD      EQU 002H');
-    writeln(tfOut,'OPSTO      EQU 003H');
-    writeln(tfOut,'OPCAL      EQU 004H');
-    writeln(tfOut,'OPINT      EQU 005H');
-    writeln(tfOut,'OPJMP      EQU 006H');
-    writeln(tfOut,'OPJPC      EQU 007H');
-    writeln(tfOut,'OPXIT      EQU 008H');
-    writeln(tfOut,'OPRET      EQU 009H');
-    writeln(tfOut,'TXOUT      EQU 00AH');
-    writeln(tfOut,'TXTIN      EQU 00BH');
-    writeln(tfOut,'OPSTK      EQU 00CH');
-    writeln(tfOut,'OPVER      EQU 00DH');
+    writeln(tfOut,'OPVER      EQU (000H SHL 1)');
+
+    writeln(tfOut,'OPLIT      EQU (001H SHL 1)');
+    writeln(tfOut,'OPLOD      EQU (002H SHL 1)');
+    writeln(tfOut,'OPSTO      EQU (003H SHL 1)');
+    writeln(tfOut,'OPOPR      EQU (004H SHL 1)');
+    writeln(tfOut,'BBOUND     EQU (005H SHL 1)');
+
+    writeln(tfOut,'OPSTK      EQU (006H SHL 1)');
+    writeln(tfOut,'OPINT      EQU (007H SHL 1)');
+    writeln(tfOut,'OPPCAL     EQU (008H SHL 1)');
+    writeln(tfOut,'OPFCAL     EQU (009H SHL 1)');
+    writeln(tfOut,'OPPRET     EQU (00AH SHL 1)');
+    writeln(tfOut,'OPFRET     EQU (00BH SHL 1)');
+
+    writeln(tfOut,'OPJMP      EQU (00CH SHL 1)');
+    writeln(tfOut,'OPJPC      EQU (00DH SHL 1)');
+
+    writeln(tfOut,'TXOUT      EQU (00EH SHL 1)');
+    writeln(tfOut,'TXTIN      EQU (00FH SHL 1)');
+    writeln(tfOut,'OPXIT      EQU (010H SHL 1)');
     writeln(tfOut);
     writeln(tfOut,'PASPROG    EQU ORGINIT + 0800H');
     writeln(tfOut,'          ORG  PASPROG');
@@ -351,75 +395,55 @@ procedure outToAssembler;
             begin
               writeln(tfOut);
               writeln(tfOut, ';  ', i:5, mnemonic[fn]:5, lv:3, ax:5);
-              writeln(tfOut, '          DB   ',omnemonic[fn]);
-              writeln(tfOut, '          DB ',lv:5);
 
-              case fn of
-                opr: begin
-                  writeln(tfOut, '          DW ',ax:5);
-                end;
-  
-                stk: begin
-                  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
-                end;
+              {write label, if required}
+              if createLabel then
+                 writeln(tfOut,'LINE',i:0);
 
-                lit: begin
-                  writeln(tfOut, '          DW ',ax:5);
-                end;
-  
-                lod: begin
-                  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
-                end;
-  
-                sto: begin
-                  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
-                end;
-  
-                cal: begin
-                  writeln(tfOut, '          DW     PASPROG + (',ax:0,' SHL 2)');
-                end;
-  
-                int: begin
-                  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
-                end;
-  
-                jmp: begin
-                  writeln(tfOut, '          DW     PASPROG + (',ax:0,' SHL 2)');
-                end;
-  
-                jpc: begin
-                  writeln(tfOut, '          DW     PASPROG + (',ax:0,' SHL 2)');
-                end;
+              {write the name}
+              writeln(tfOut, '          DB      ',omnemonic[fn]);
 
-                ret: begin
-                  writeln(tfOut, '          DW ',ax:5);
-                end;
+              {do we have the level for this instruction?}
+              if (fn in instr4) or (fn in instr2) then
+                if fn = opr then
+                  writeln(tfOut, '          DB     (',ax:0,' SHL 2)')
+                else
+                  writeln(tfOut, '          DB      ',lv:0);
+                
+
+              {do we have ax for this instruction?}
+              if (fn in instr4) or (fn in instr3) then
+                case fn of
+                  stk:  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
+                  lit:  writeln(tfOut, '          DW     ',ax:0);
+                  lod:  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
+                  sto:  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
+                  fcal: writeln(tfOut, '          DW     LINE',ax:0);
+                  pcal: writeln(tfOut, '          DW     LINE',ax:0);
+                  int:  writeln(tfOut, '          DW     (',ax:0,' SHL 1)');
+                  jmp:  writeln(tfOut, '          DW     LINE',ax:0);
+                  jpc:  writeln(tfOut, '          DW     LINE',ax:0);
+                  pret: writeln(tfOut, '          DW     ',ax:0);
+                  fret: writeln(tfOut, '          DW     ',ax:0);
+                  xit:  writeln(tfOut, '          DW     ',ax:0);
+                  tin:  writeln(tfOut, 'text in not implemented yet');
+                  ver:  writeln(tfOut, '          DW     ',ax:0);
   
-                xit: begin
-                  writeln(tfOut, '          DW ',ax:5);
-                end;
-
-                tot: begin
-                  if lv = IO_charString then
-                  writeln(tfOut, '          DW     CONSTCHARTXT+',ax:0)
-                  else if (lv = IO_uint16) or (lv = IO_char) then
-                  writeln(tfOut, '          DW     0 ; uint16, on stack')
-                  else begin
-
-                  writeln(tfOut, 'XXX unknown type, ',lv);
-                  writeln('text out,  unknown type, ',lv);
+                  tot: begin
+                    if lv = IO_charString then
+                    writeln(tfOut, '          DW       CONSTCHARTXT+',ax:0)
+                    else if (lv = IO_uint16) or (lv = IO_char) then
+                    writeln(tfOut, '          DW     0 ; uint16, on stack')
+                    else begin
+  
+                    writeln(tfOut, 'XXX unknown type, ',lv);
+                    writeln('text out,  unknown type, ',lv);
+                    end;
                   end;
-                end;
-
-                tin: begin
-                  writeln(tfOut, 'text in not implemented yet');
-                end;
-
-                ver: begin
-                  writeln(tfOut, '          DW ',ax:5);
-                end;
   
-             end;
+                end
+              else writeln(tfOut, '; no ax field');
+         
     end;
 
     {write out any character strings here}
@@ -951,7 +975,7 @@ begin if cx > cxmax then
            begin write(' program too long'); goto 99
            end;
    with code[cx] do
-      begin fn := x; lv := y; ax := z
+      begin createLabel := false; fn := x; lv := y; ax := z
       end;
    cx := cx + 1
 end {gen};
@@ -1344,7 +1368,7 @@ function parseFuncParams(i:integer) :integer;
           {remove space for parameters}
           gen(stk, 0, DlSlRa_func + nparams+1);
         end;
-      gen(cal, lev-level, adr);
+      gen(fcal, lev-level, adr);
     end;
   parseFuncParams := returnedTyp;
 end;
@@ -1833,7 +1857,7 @@ end;
                 if sym=rparen then getsym else error(rparenexpected);
       
               end;
-              gen(cal, lev-level, adr);
+              gen(pcal, lev-level, adr);
             end
       end;
 
@@ -2310,8 +2334,8 @@ procedure parameterList(fromWhere:obj);
     {restore tx to where it was before parsing these parameters}
     tx := txOfParamFunc;
 
-    {writeln(' end parameterlist, tx:',tx:1,' txOfParamFunc:',txOfParamFunc:1);
-    writeln(' end paramterList, have #params:', tx -txOfParamFunc);}
+    writeln(' end parameterlist, tx:',tx:1,' txOfParamFunc:',txOfParamFunc:1);
+    writeln(' end paramterList, have #params:', tx -txOfParamFunc);
   end {parameterList};
 
 
@@ -2319,7 +2343,7 @@ begin {block}
    {if this is the main, (ie not a proc or func) this will be set}   
    mainBody := -1;
 
-   {writeln ('beginning of block,tx:',tx:2,'nparams',table[tx].nparams);}
+   writeln ('beginning of block,tx:',tx:2,'nparams',table[tx].nparams);
 
    { begin block - tx is the index of possibly a function or procedure
     we increment the data param to include not only the 3 normal entries
@@ -2332,6 +2356,7 @@ begin {block}
    else if parentType = proc_def then
      dx := DlSlRa_proc + table[tx].nparams
    else dx := DlSlRa_main;
+
 
    {writeln ('beginning block, now dx=',dx:2,' tx=',tx:2);}
    tx0:=tx; 
@@ -2363,8 +2388,8 @@ begin {block}
    tx := tx + table[tx0].nparams;
    if parentType = func_def then tx:= tx+1;
 
-   {writeln(tx,' (at beginning of block)'); 
-   printTable;}
+   writeln(tx,' (at beginning of block)'); 
+   {printTable;}
 
 
    if lev > levmax then error(procedureLevel);
@@ -2519,7 +2544,7 @@ begin {block}
    else 
      code[table[tx0].adr].ax := cx;
 
-   {printTable;}
+   printTable;
 
    gen(int, 0, dx);
    statement([semicolon, endsym]+fsys);
@@ -2528,9 +2553,9 @@ begin {block}
    if lev > 0 then
      begin
        if parentType = func_def then
-         gen(ret, 1, 0) {return}
+         gen(fret, 1, 0) {return}
        else
-         gen(ret, 0, 0) {return}
+         gen(pret, 0, 0) {return}
      end
    else 
      begin
@@ -2610,9 +2635,7 @@ begin writeln(' start TinyPascal');
       lit: begin tops := tops + 1; s[tops] := ax
            end;
 
-      ret: begin
-             if lv=1 then
-               begin
+      fret: begin
                  {write ('returning a function value... dynamicLink:',dynamicLink:3);}
                  rv := s[dynamiclink+3];
                  {writeln (tops:5,' value:',rv:3);}
@@ -2623,26 +2646,18 @@ begin writeln(' start TinyPascal');
                  tops := tops+1;
                  s[tops] := rv;
                  {writeln('ret 1, tos is:',tops:2);}
-                 
-               end
-             else 
-               begin
-                 {normal procedure return}
-                 tops := dynamicLink - 1; 
-{
-                 write('ret, tops now ',tops:4);
-}
-                 progPtr := s[tops + 3]; 
-
-{
-                 write (' progptr now ',progPtr:4);
-}
-                 dynamicLink := s[tops + 2];
-{
-                 writeln(' dynamicLink now ',dynamicLink:4);
-                 printstatus;
-}
                end;
+                 
+      pret: begin
+                 {normal procedure return}
+                 {printstatus;}
+		 {writeln ('pret: tops was:',tops:4,' is:',(dynamicLink-1):4);}
+                 tops := dynamicLink - 1; 
+                 {writeln('pret: pptr was:',progPtr:4,' is:',s[tops+3]:4);}
+                 progPtr := s[tops + 3]; 
+                 {writeln('pret: dyl  was:',dynamicLink:4,' is:',s[tops+2]:4);}
+                 dynamicLink := s[tops + 2];
+                 {printstatus;}
            end;
 
       xit: begin
@@ -2743,7 +2758,7 @@ begin writeln(' start TinyPascal');
 }
              tops := tops - 1
            end;
-      cal: begin {generate new block mark}
+      pcal,fcal: begin {generate new block mark}
               s[tops + 1] := base(lv); s[tops + 2] := dynamicLink; s[tops + 3] := progPtr;
 {
 writeln('cal, lv ',lv:4);
@@ -2803,7 +2818,7 @@ writeln('cal, DL now ',dynamicLink:4,' progPtr ',progPtr:4);
 
       count := count+1;
    until progPtr = 0;
-   write(' end TinyPascal');
+   writeln(' end TinyPascal');
 end {interpret};
 
 
@@ -2868,22 +2883,25 @@ begin {main program}
   ssym[ ';'] := semicolon;  ssym[ ':'] := colon; 
   ssym[ ''''] := quote;
 
-  mnemonic[lit] := '  lit';   mnemonic[opr] := '  opr';
-  mnemonic[lod] := '  lod';   mnemonic[sto] := '  sto';
-  mnemonic[cal] := '  cal';   mnemonic[int] := '  int';
-  mnemonic[jmp] := '  jmp';   mnemonic[jpc] := '  jpc';
-  mnemonic[ret] := '  ret';   mnemonic[xit] := '  xit';
-  mnemonic[tot] := '  tot';   mnemonic[tin] := '  tin';
-  mnemonic[stk] := '  stk';   mnemonic[ver] := '  ver';
+  mnemonic[ver]  := '  ver'; mnemonic[lit]  := '  lit';   
+  mnemonic[lod]  := '  lod'; mnemonic[sto]  := '  sto';
+  mnemonic[opr]  := '  opr'; mnemonic[bbnd] := ' bbnd';
+  mnemonic[stk]  := '  stk'; mnemonic[int]  := '  int';
+  mnemonic[pcal] := ' pcal'; mnemonic[fcal] := ' fcal';
+  mnemonic[pret] := ' pret'; mnemonic[fret] := ' fret';
+  mnemonic[jmp]  := '  jmp'; mnemonic[jpc]  := '  jpc';
+  mnemonic[tot]  := ' txot'; mnemonic[tin]  := ' txin';
+  mnemonic[xit]  := '  xit';
 
-  omnemonic[lit] := '  OPLIT';   omnemonic[opr] := '  OPOPR';
-  omnemonic[lod] := '  OPLOD';   omnemonic[sto] := '  OPSTO';
-  omnemonic[cal] := '  OPCAL';   omnemonic[int] := '  OPINT';
-  omnemonic[jmp] := '  OPJMP';   omnemonic[jpc] := '  OPJPC';
-  omnemonic[ret] := '  OPRET';   omnemonic[xit] := '  OPXIT';
-  omnemonic[tot] := '  TXOUT';   omnemonic[tin] := '  TXTIN';
-  omnemonic[stk] := '  OPSTK';   omnemonic[ver] := '  OPVER';
-
+  omnemonic[ver]  := '  OPVER'; omnemonic[lit]  := '  OPLIT';   
+  omnemonic[lod]  := '  OPLOD'; omnemonic[sto]  := '  OPSTO';
+  omnemonic[opr]  := '  OPOPR'; omnemonic[bbnd] := '  OPBND';
+  omnemonic[stk]  := '  OPSTK'; omnemonic[int]  := '  OPINT';
+  omnemonic[pcal] := ' OPPCAL'; omnemonic[fcal] := ' OPFCAL';
+  omnemonic[pret] := ' OPPRET'; omnemonic[fret] := ' OPFRET';
+  omnemonic[jmp]  := '  OPJMP'; omnemonic[jpc]  := '  OPJPC';
+  omnemonic[tot]  := '  TXOUT'; omnemonic[tin]  := ' OPTXIN';
+  omnemonic[xit]  := '  OPXIT';
 
   declbegsys := [typesym, constsym, varsym, procsym, funcsym];
   statbegsys := [beginsym, ifsym, whilesym, repeatsym, forsym,pokesym];
@@ -2902,7 +2920,7 @@ begin {main program}
   {gen is ascii '0' * 256 + ascii '1' for version 01}
   {writeln('should be genning for version ',48*256+49);}
 
-  gen(ver,0,48*256+52);
+  gen(ver,0,48*256+53);
 
 
   block(startingLevel, 

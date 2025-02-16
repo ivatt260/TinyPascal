@@ -34,2789 +34,2600 @@ ROMISAT     EQU     08000H
 STACKST	EQU	07EFFH	; note: 7Fxx last lines used by MemberSHIP monitor
 	ENDI ; memberSHIP card
 
-OPLIT      EQU 000H
-OPOPR      EQU 001H
-OPLOD      EQU 002H
-OPSTO      EQU 003H
-OPCAL      EQU 004H
-OPINT      EQU 005H
-OPJMP      EQU 006H
-OPJPC      EQU 007H
-OPXIT      EQU 008H
-OPRET      EQU 009H
-TXOUT      EQU 00AH
-TXTIN      EQU 00BH
-OPSTK      EQU 00CH
-OPVER      EQU 00DH
+OPVER      EQU (000H SHL 1)
+OPLIT      EQU (001H SHL 1)
+OPLOD      EQU (002H SHL 1)
+OPSTO      EQU (003H SHL 1)
+OPOPR      EQU (004H SHL 1)
+BBOUND     EQU (005H SHL 1)
+OPSTK      EQU (006H SHL 1)
+OPINT      EQU (007H SHL 1)
+OPPCAL     EQU (008H SHL 1)
+OPFCAL     EQU (009H SHL 1)
+OPPRET     EQU (00AH SHL 1)
+OPFRET     EQU (00BH SHL 1)
+OPJMP      EQU (00CH SHL 1)
+OPJPC      EQU (00DH SHL 1)
+TXOUT      EQU (00EH SHL 1)
+TXTIN      EQU (00FH SHL 1)
+OPXIT      EQU (010H SHL 1)
 
 PASPROG    EQU ORGINIT + 0800H
           ORG  PASPROG
 
 
-;      0  ver  012340
-          DB     OPVER
-          DB     0
-          DW 12340
+;      0  ver  012341
+          DB        OPVER
+          DW     12341
 
 ;      1  jmp  0  487
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (487 SHL 2)
+          DB        OPJMP
+          DW     LINE487
 
 ;      2  jmp  0    3
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (3 SHL 2)
+LINE2
+          DB        OPJMP
+          DW     LINE3
 
 ;      3  int  0    6
-          DB     OPINT
-          DB     0
+LINE3
+          DB        OPINT
           DW     (6 SHL 1)
 
 ;      4  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;      5  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;      6  opr  0   10
-          DB     OPOPR
-          DB     0
-          DW    10
+          DB        OPOPR
+          DB     (10 SHL 2)
+; no ax field
 
 ;      7  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
-;      8  lod  1    1
-          DB     OPLOD
-          DB     1
-          DW     (1 SHL 1)
+;      8  lod  1    4
+          DB        OPLOD
+          DB      1
+          DW     (4 SHL 1)
 
 ;      9  opr  0   12
-          DB     OPOPR
-          DB     0
-          DW    12
+          DB        OPOPR
+          DB     (12 SHL 2)
+; no ax field
 
 ;     10  opr  0   15
-          DB     OPOPR
-          DB     0
-          DW    15
+          DB        OPOPR
+          DB     (15 SHL 2)
+; no ax field
 
 ;     11  jpc  0   18
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (18 SHL 2)
+          DB        OPJPC
+          DW     LINE18
 
-;     12  tot  1    3
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+3
+;     12 txot  1    3
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+3
 
 ;     13  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
-;     14  tot  2    0
-          DB     TXOUT
-          DB     2
+;     14 txot  2    0
+          DB        TXOUT
+          DB      2
           DW     0 ; uint16, on stack
 
-;     15  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;     15 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
 ;     16  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;     17  sto  0    4
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (4 SHL 1)
 
 ;     18  lod  0    5
-          DB     OPLOD
-          DB     0
+LINE18
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;     19  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;     20  opr  0   10
-          DB     OPOPR
-          DB     0
-          DW    10
+          DB        OPOPR
+          DB     (10 SHL 2)
+; no ax field
 
 ;     21  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
-;     22  lod  1    0
-          DB     OPLOD
-          DB     1
-          DW     (0 SHL 1)
+;     22  lod  1    3
+          DB        OPLOD
+          DB      1
+          DW     (3 SHL 1)
 
 ;     23  opr  0   12
-          DB     OPOPR
-          DB     0
-          DW    12
+          DB        OPOPR
+          DB     (12 SHL 2)
+; no ax field
 
 ;     24  opr  0   15
-          DB     OPOPR
-          DB     0
-          DW    15
+          DB        OPOPR
+          DB     (15 SHL 2)
+; no ax field
 
 ;     25  jpc  0   32
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (32 SHL 2)
+          DB        OPJPC
+          DW     LINE32
 
-;     26  tot  1   22
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+22
+;     26 txot  1   22
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+22
 
 ;     27  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
-;     28  tot  2    0
-          DB     TXOUT
-          DB     2
+;     28 txot  2    0
+          DB        TXOUT
+          DB      2
           DW     0 ; uint16, on stack
 
-;     29  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;     29 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
 ;     30  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;     31  sto  0    5
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (5 SHL 1)
 
-;     32  lod  1   14
-          DB     OPLOD
-          DB     1
-          DW     (14 SHL 1)
+;     32  lod  1   17
+LINE32
+          DB        OPLOD
+          DB      1
+          DW     (17 SHL 1)
 
 ;     33  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;     34  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;     35  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;     36  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;     37  opr  0    3
-          DB     OPOPR
-          DB     0
-          DW     3
+          DB        OPOPR
+          DB     (3 SHL 2)
+; no ax field
 
-;     38  lod  1    0
-          DB     OPLOD
-          DB     1
-          DW     (0 SHL 1)
-
-;     39  opr  0    4
-          DB     OPOPR
-          DB     0
-          DW     4
-
-;     40  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
-
-;     41  sto  0    3
-          DB     OPSTO
-          DB     0
+;     38  lod  1    3
+          DB        OPLOD
+          DB      1
           DW     (3 SHL 1)
 
-;     42  ret  1    0
-          DB     OPRET
-          DB     1
-          DW     0
+;     39  opr  0    4
+          DB        OPOPR
+          DB     (4 SHL 2)
+; no ax field
+
+;     40  opr  0    2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
+
+;     41  sto  0    3
+          DB        OPSTO
+          DB      0
+          DW     (3 SHL 1)
+
+;     42 fret  1    0
+          DB       OPFRET
+; no ax field
 
 ;     43  jmp  0   44
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (44 SHL 2)
+LINE43
+          DB        OPJMP
+          DW     LINE44
 
 ;     44  int  0    9
-          DB     OPINT
-          DB     0
+LINE44
+          DB        OPINT
           DW     (9 SHL 1)
 
 ;     45  lod  0    3
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
 ;     46  sto  0    7
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (7 SHL 1)
 
 ;     47  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;     48  sto  0    8
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (8 SHL 1)
 
 ;     49  lod  0    8
-          DB     OPLOD
-          DB     0
+LINE49
+          DB        OPLOD
+          DB      0
           DW     (8 SHL 1)
 
 ;     50  lod  0    6
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;     51  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;     52  jpc  0   65
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (65 SHL 2)
+          DB        OPJPC
+          DW     LINE65
 
 ;     53  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;     54  lod  0    7
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (7 SHL 1)
 
 ;     55  lod  0    8
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (8 SHL 1)
 
 ;     56  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;     57  cal  1    2
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (2 SHL 2)
+;     57 fcal  1    2
+          DB       OPFCAL
+          DW     LINE2
 
-;     58  lod  1    3
-          DB     OPLOD
-          DB     1
-          DW     (3 SHL 1)
+;     58  lod  1    6
+          DB        OPLOD
+          DB      1
+          DW     (6 SHL 1)
 
 ;     59  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
 
 ;     60  lod  0    8
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (8 SHL 1)
 
 ;     61  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;     62  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;     63  sto  0    8
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (8 SHL 1)
 
 ;     64  jmp  0   49
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (49 SHL 2)
+          DB        OPJMP
+          DW     LINE49
 
-;     65  ret  0    0
-          DB     OPRET
-          DB     0
-          DW     0
+;     65 pret  0    0
+LINE65
+          DB       OPPRET
+; no ax field
 
 ;     66  jmp  0   67
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (67 SHL 2)
+LINE66
+          DB        OPJMP
+          DW     LINE67
 
 ;     67  int  0    9
-          DB     OPINT
-          DB     0
+LINE67
+          DB        OPINT
           DW     (9 SHL 1)
 
 ;     68  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;     69  sto  0    8
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (8 SHL 1)
 
 ;     70  lod  0    3
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
 ;     71  sto  0    7
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (7 SHL 1)
 
 ;     72  lod  0    7
-          DB     OPLOD
-          DB     0
+LINE72
+          DB        OPLOD
+          DB      0
           DW     (7 SHL 1)
 
 ;     73  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;     74  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;     75  jpc  0   88
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (88 SHL 2)
+          DB        OPJPC
+          DW     LINE88
 
 ;     76  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;     77  lod  0    7
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (7 SHL 1)
 
 ;     78  lod  0    8
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (8 SHL 1)
 
 ;     79  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;     80  cal  1    2
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (2 SHL 2)
+;     80 fcal  1    2
+          DB       OPFCAL
+          DW     LINE2
 
-;     81  lod  1    3
-          DB     OPLOD
-          DB     1
-          DW     (3 SHL 1)
+;     81  lod  1    6
+          DB        OPLOD
+          DB      1
+          DW     (6 SHL 1)
 
 ;     82  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
 
 ;     83  lod  0    7
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (7 SHL 1)
 
 ;     84  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;     85  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;     86  sto  0    7
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (7 SHL 1)
 
 ;     87  jmp  0   72
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (72 SHL 2)
+          DB        OPJMP
+          DW     LINE72
 
-;     88  ret  0    0
-          DB     OPRET
-          DB     0
-          DW     0
+;     88 pret  0    0
+LINE88
+          DB       OPPRET
+; no ax field
 
 ;     89  jmp  0   90
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (90 SHL 2)
+LINE89
+          DB        OPJMP
+          DW     LINE90
 
 ;     90  int  0    5
-          DB     OPINT
-          DB     0
+LINE90
+          DB        OPINT
           DW     (5 SHL 1)
 
 ;     91  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
-;     92  sto  1    1
-          DB     OPSTO
-          DB     1
-          DW     (1 SHL 1)
+;     92  sto  1    4
+          DB        OPSTO
+          DB      1
+          DW     (4 SHL 1)
 
 ;     93  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
-;     94  sto  1    0
-          DB     OPSTO
-          DB     1
-          DW     (0 SHL 1)
+;     94  sto  1    3
+          DB        OPSTO
+          DB      1
+          DW     (3 SHL 1)
 
-;     95  tot  1   41
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+41
+;     95 txot  1   41
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+41
 
-;     96  lod  1   13
-          DB     OPLOD
-          DB     1
-          DW     (13 SHL 1)
+;     96  lod  1   16
+          DB        OPLOD
+          DB      1
+          DW     (16 SHL 1)
 
-;     97  tot  2    0
-          DB     TXOUT
-          DB     2
+;     97 txot  2    0
+          DB        TXOUT
+          DB      2
           DW     0 ; uint16, on stack
 
-;     98  tot  1   55
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+55
+;     98 txot  1   55
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+55
 
-;     99  lod  1    1
-          DB     OPLOD
-          DB     1
-          DW     (1 SHL 1)
+;     99  lod  1    4
+          DB        OPLOD
+          DB      1
+          DW     (4 SHL 1)
 
-;    100  lod  1    0
-          DB     OPLOD
-          DB     1
-          DW     (0 SHL 1)
+;    100  lod  1    3
+          DB        OPLOD
+          DB      1
+          DW     (3 SHL 1)
 
 ;    101  opr  0    4
-          DB     OPOPR
-          DB     0
-          DW     4
+          DB        OPOPR
+          DB     (4 SHL 2)
+; no ax field
 
-;    102  tot  2    0
-          DB     TXOUT
-          DB     2
+;    102 txot  2    0
+          DB        TXOUT
+          DB      2
           DW     0 ; uint16, on stack
 
-;    103  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;    103 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
-;    104  lod  1    1
-          DB     OPLOD
-          DB     1
-          DW     (1 SHL 1)
+;    104  lod  1    4
+          DB        OPLOD
+          DB      1
+          DW     (4 SHL 1)
 
-;    105  lod  1    0
-          DB     OPLOD
-          DB     1
-          DW     (0 SHL 1)
+;    105  lod  1    3
+          DB        OPLOD
+          DB      1
+          DW     (3 SHL 1)
 
 ;    106  opr  0    4
-          DB     OPOPR
-          DB     0
-          DW     4
+          DB        OPOPR
+          DB     (4 SHL 2)
+; no ax field
 
-;    107  lod  1   13
-          DB     OPLOD
-          DB     1
-          DW     (13 SHL 1)
+;    107  lod  1   16
+          DB        OPLOD
+          DB      1
+          DW     (16 SHL 1)
 
 ;    108  opr  0   12
-          DB     OPOPR
-          DB     0
-          DW    12
+          DB        OPOPR
+          DB     (12 SHL 2)
+; no ax field
 
 ;    109  jpc  0  113
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (113 SHL 2)
+          DB        OPJPC
+          DW     LINE113
 
-;    110  tot  1   69
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+69
+;    110 txot  1   69
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+69
 
-;    111  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;    111 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
 ;    112  jmp  0  115
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (115 SHL 2)
+          DB        OPJMP
+          DW     LINE115
 
-;    113  tot  1   88
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+88
+;    113 txot  1   88
+LINE113
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+88
 
-;    114  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;    114 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
 ;    115  lit  0    1
-          DB     OPLIT
-          DB     0
+LINE115
+          DB        OPLIT
           DW     1
 
 ;    116  sto  0    3
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (3 SHL 1)
 
 ;    117  lod  0    3
-          DB     OPLOD
-          DB     0
+LINE117
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
-;    118  lod  1    1
-          DB     OPLOD
-          DB     1
-          DW     (1 SHL 1)
+;    118  lod  1    4
+          DB        OPLOD
+          DB      1
+          DW     (4 SHL 1)
 
 ;    119  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;    120  jpc  0  144
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (144 SHL 2)
+          DB        OPJPC
+          DW     LINE144
 
 ;    121  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    122  sto  0    4
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (4 SHL 1)
 
 ;    123  lod  0    4
-          DB     OPLOD
-          DB     0
+LINE123
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
-;    124  lod  1    0
-          DB     OPLOD
-          DB     1
-          DW     (0 SHL 1)
+;    124  lod  1    3
+          DB        OPLOD
+          DB      1
+          DW     (3 SHL 1)
 
 ;    125  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;    126  jpc  0  139
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (139 SHL 2)
+          DB        OPJPC
+          DW     LINE139
 
 ;    127  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;    128  lod  0    3
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
 ;    129  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    130  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    131  cal  1    2
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (2 SHL 2)
+;    131 fcal  1    2
+          DB       OPFCAL
+          DW     LINE2
 
-;    132  lod  1    2
-          DB     OPLOD
-          DB     1
-          DW     (2 SHL 1)
+;    132  lod  1    5
+          DB        OPLOD
+          DB      1
+          DW     (5 SHL 1)
 
 ;    133  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
 
 ;    134  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    135  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    136  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;    137  sto  0    4
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (4 SHL 1)
 
 ;    138  jmp  0  123
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (123 SHL 2)
+          DB        OPJMP
+          DW     LINE123
 
 ;    139  lod  0    3
-          DB     OPLOD
-          DB     0
+LINE139
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
 ;    140  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    141  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;    142  sto  0    3
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (3 SHL 1)
 
 ;    143  jmp  0  117
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (117 SHL 2)
+          DB        OPJMP
+          DW     LINE117
 
 ;    144  stk  1    3
-          DB     OPSTK
-          DB     1
+LINE144
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    145  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    146  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    147  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    148  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    149  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    150  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    150 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    151  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    152  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    153  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    154  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    155  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    156  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    157  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    157 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    158  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    159  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    160  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    161  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    162  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    163  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    164  cal  1   66
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (66 SHL 2)
+;    164 pcal  1   66
+          DB       OPPCAL
+          DW     LINE66
 
 ;    165  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    166  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    167  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    168  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    169  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
 ;    170  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    171  cal  1   66
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (66 SHL 2)
+;    171 pcal  1   66
+          DB       OPPCAL
+          DW     LINE66
 
 ;    172  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
-;    173  sto  1    9
-          DB     OPSTO
-          DB     1
-          DW     (9 SHL 1)
+;    173  sto  1   12
+          DB        OPSTO
+          DB      1
+          DW     (12 SHL 1)
 
 ;    174  lit  0    6
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     6
 
-;    175  sto  1   10
-          DB     OPSTO
-          DB     1
-          DW     (10 SHL 1)
+;    175  sto  1   13
+          DB        OPSTO
+          DB      1
+          DW     (13 SHL 1)
 
 ;    176  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
-;    177  lod  1    9
-          DB     OPLOD
-          DB     1
-          DW     (9 SHL 1)
+;    177  lod  1   12
+          DB        OPLOD
+          DB      1
+          DW     (12 SHL 1)
 
-;    178  lod  1   10
-          DB     OPLOD
-          DB     1
-          DW     (10 SHL 1)
+;    178  lod  1   13
+          DB        OPLOD
+          DB      1
+          DW     (13 SHL 1)
 
 ;    179  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    180  cal  1    2
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (2 SHL 2)
+;    180 fcal  1    2
+          DB       OPFCAL
+          DW     LINE2
 
-;    181  sto  1    6
-          DB     OPSTO
-          DB     1
-          DW     (6 SHL 1)
+;    181  sto  1    9
+          DB        OPSTO
+          DB      1
+          DW     (9 SHL 1)
 
-;    182  lod  1    6
-          DB     OPLOD
-          DB     1
-          DW     (6 SHL 1)
+;    182  lod  1    9
+          DB        OPLOD
+          DB      1
+          DW     (9 SHL 1)
 
-;    183  lod  1    2
-          DB     OPLOD
-          DB     1
-          DW     (2 SHL 1)
+;    183  lod  1    5
+          DB        OPLOD
+          DB      1
+          DW     (5 SHL 1)
 
 ;    184  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
 
 ;    185  lit  0   11
-          DB     OPLIT
-          DB     0
-          DW    11
+          DB        OPLIT
+          DW     11
 
-;    186  sto  1   11
-          DB     OPSTO
-          DB     1
-          DW     (11 SHL 1)
+;    186  sto  1   14
+          DB        OPSTO
+          DB      1
+          DW     (14 SHL 1)
 
 ;    187  lit  0    6
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     6
 
-;    188  sto  1   12
-          DB     OPSTO
-          DB     1
-          DW     (12 SHL 1)
+;    188  sto  1   15
+          DB        OPSTO
+          DB      1
+          DW     (15 SHL 1)
 
 ;    189  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
-;    190  lod  1   11
-          DB     OPLOD
-          DB     1
-          DW     (11 SHL 1)
+;    190  lod  1   14
+          DB        OPLOD
+          DB      1
+          DW     (14 SHL 1)
 
-;    191  lod  1   12
-          DB     OPLOD
-          DB     1
-          DW     (12 SHL 1)
+;    191  lod  1   15
+          DB        OPLOD
+          DB      1
+          DW     (15 SHL 1)
 
 ;    192  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    193  cal  1    2
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (2 SHL 2)
+;    193 fcal  1    2
+          DB       OPFCAL
+          DW     LINE2
 
-;    194  sto  1    7
-          DB     OPSTO
-          DB     1
-          DW     (7 SHL 1)
+;    194  sto  1   10
+          DB        OPSTO
+          DB      1
+          DW     (10 SHL 1)
 
-;    195  lod  1    7
-          DB     OPLOD
-          DB     1
-          DW     (7 SHL 1)
+;    195  lod  1   10
+          DB        OPLOD
+          DB      1
+          DW     (10 SHL 1)
 
-;    196  lod  1    2
-          DB     OPLOD
-          DB     1
-          DW     (2 SHL 1)
+;    196  lod  1    5
+          DB        OPLOD
+          DB      1
+          DW     (5 SHL 1)
 
 ;    197  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
 
 ;    198  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    199  lit  0    2
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     2
 
 ;    200  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    201  lit  0    2
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     2
 
 ;    202  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    203  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    204  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    204 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    205  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    206  lit  0    3
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     3
 
 ;    207  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    208  lit  0    3
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     3
 
 ;    209  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    210  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    211  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    211 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    212  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    213  lit  0    4
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     4
 
 ;    214  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    215  lit  0    4
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     4
 
 ;    216  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    217  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    218  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    218 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    219  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    220  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    221  lit  0    3
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     3
 
 ;    222  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    223  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    224  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    225  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    225 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    226  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    227  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    228  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    229  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    230  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    231  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    232  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    232 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    233  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    234  lit  0    6
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     6
 
 ;    235  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    236  lit  0    6
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     6
 
 ;    237  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    238  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    239  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    239 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    240  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    241  lit  0    6
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     6
 
 ;    242  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    243  lit  0    6
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     6
 
 ;    244  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    245  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    246  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    246 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    247  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    248  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    249  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    250  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    251  lit  0    2
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     2
 
 ;    252  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    253  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    253 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    254  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    255  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    256  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    257  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    258  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    259  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    260  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    260 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    261  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    262  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    263  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    264  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    265  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    266  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    267  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    267 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    268  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    269  lit  0    8
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     8
 
 ;    270  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    271  lit  0    8
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     8
 
 ;    272  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    273  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    274  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    274 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    275  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    276  lit  0    8
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     8
 
 ;    277  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    278  lit  0    8
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     8
 
 ;    279  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    280  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    281  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    281 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    282  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    283  lit  0    8
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     8
 
 ;    284  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    285  lit  0    8
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     8
 
 ;    286  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    287  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    288  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    288 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    289  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    290  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    291  lit  0    3
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     3
 
 ;    292  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    293  lit  0    3
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     3
 
 ;    294  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    295  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    295 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    296  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    297  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    298  lit  0    5
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     5
 
 ;    299  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    300  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    301  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    302  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    302 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    303  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    304  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    305  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    306  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    307  lit  0    9
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     9
 
 ;    308  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    309  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    309 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    310  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    311  lit  0   10
-          DB     OPLIT
-          DB     0
-          DW    10
+          DB        OPLIT
+          DW     10
 
 ;    312  lit  0    3
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     3
 
 ;    313  lit  0   10
-          DB     OPLIT
-          DB     0
-          DW    10
+          DB        OPLIT
+          DW     10
 
 ;    314  lit  0    3
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     3
 
 ;    315  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    316  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    316 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
 ;    317  stk  1    3
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (3 SHL 1)
 
 ;    318  lit  0   10
-          DB     OPLIT
-          DB     0
-          DW    10
+          DB        OPLIT
+          DW     10
 
 ;    319  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    320  lit  0   10
-          DB     OPLIT
-          DB     0
-          DW    10
+          DB        OPLIT
+          DW     10
 
 ;    321  lit  0    7
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     7
 
 ;    322  stk  0    7
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (7 SHL 1)
 
-;    323  cal  1   43
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (43 SHL 2)
+;    323 pcal  1   43
+          DB       OPPCAL
+          DW     LINE43
 
-;    324  ret  0    0
-          DB     OPRET
-          DB     0
-          DW     0
+;    324 pret  0    0
+          DB       OPPRET
+; no ax field
 
 ;    325  jmp  0  326
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (326 SHL 2)
+LINE325
+          DB        OPJMP
+          DW     LINE326
 
 ;    326  int  0    7
-          DB     OPINT
-          DB     0
+LINE326
+          DB        OPINT
           DW     (7 SHL 1)
 
 ;    327  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    328  sto  0    3
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (3 SHL 1)
 
 ;    329  lod  0    3
-          DB     OPLOD
-          DB     0
+LINE329
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
-;    330  lod  1    1
-          DB     OPLOD
-          DB     1
-          DW     (1 SHL 1)
+;    330  lod  1    4
+          DB        OPLOD
+          DB      1
+          DW     (4 SHL 1)
 
 ;    331  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;    332  jpc  0  383
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (383 SHL 2)
+          DB        OPJPC
+          DW     LINE383
 
-;    333  tot  1  111
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+111
+;    333 txot  1  111
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+111
 
 ;    334  lod  0    3
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
-;    335  tot  2    0
-          DB     TXOUT
-          DB     2
+;    335 txot  2    0
+          DB        TXOUT
+          DB      2
           DW     0 ; uint16, on stack
 
-;    336  tot  1  116
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+116
+;    336 txot  1  116
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+116
 
 ;    337  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    338  sto  0    4
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (4 SHL 1)
 
 ;    339  lod  0    4
-          DB     OPLOD
-          DB     0
+LINE339
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
-;    340  lod  1    0
-          DB     OPLOD
-          DB     1
-          DW     (0 SHL 1)
+;    340  lod  1    3
+          DB        OPLOD
+          DB      1
+          DW     (3 SHL 1)
 
 ;    341  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;    342  jpc  0  377
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (377 SHL 2)
+          DB        OPJPC
+          DW     LINE377
 
 ;    343  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;    344  lod  0    3
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
 ;    345  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    346  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    347  cal  1    2
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (2 SHL 2)
+;    347 fcal  1    2
+          DB       OPFCAL
+          DW     LINE2
 
 ;    348  sto  0    5
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (5 SHL 1)
 
 ;    349  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;    350  opr  0   17
-          DB     OPOPR
-          DB     0
-          DW    17
+          DB        OPOPR
+          DB     (17 SHL 2)
+; no ax field
 
 ;    351  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    352  lod  0    6
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
-;    353  lod  1    4
-          DB     OPLOD
-          DB     1
-          DW     (4 SHL 1)
+;    353  lod  1    7
+          DB        OPLOD
+          DB      1
+          DW     (7 SHL 1)
 
 ;    354  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    355  jpc  0  358
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (358 SHL 2)
+          DB        OPJPC
+          DW     LINE358
 
-;    356  lod  1    2
-          DB     OPLOD
-          DB     1
-          DW     (2 SHL 1)
+;    356  lod  1    5
+          DB        OPLOD
+          DB      1
+          DW     (5 SHL 1)
 
 ;    357  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    358  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE358
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    359  lit  0  127
-          DB     OPLIT
-          DB     0
-          DW   127
+          DB        OPLIT
+          DW     127
 
 ;    360  opr  0   12
-          DB     OPOPR
-          DB     0
-          DW    12
+          DB        OPOPR
+          DB     (12 SHL 2)
+; no ax field
 
 ;    361  jpc  0  364
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (364 SHL 2)
+          DB        OPJPC
+          DW     LINE364
 
 ;    362  lit  0   88
-          DB     OPLIT
-          DB     0
-          DW    88
+          DB        OPLIT
+          DW     88
 
 ;    363  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    364  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE364
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    365  lit  0   32
-          DB     OPLIT
-          DB     0
-          DW    32
+          DB        OPLIT
+          DW     32
 
 ;    366  opr  0   10
-          DB     OPOPR
-          DB     0
-          DW    10
+          DB        OPOPR
+          DB     (10 SHL 2)
+; no ax field
 
 ;    367  jpc  0  370
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (370 SHL 2)
+          DB        OPJPC
+          DW     LINE370
 
 ;    368  lit  0  120
-          DB     OPLIT
-          DB     0
-          DW   120
+          DB        OPLIT
+          DW     120
 
 ;    369  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    370  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE370
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
-;    371  tot  3    0
-          DB     TXOUT
-          DB     3
+;    371 txot  3    0
+          DB        TXOUT
+          DB      3
           DW     0 ; uint16, on stack
 
 ;    372  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    373  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    374  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;    375  sto  0    4
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (4 SHL 1)
 
 ;    376  jmp  0  339
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (339 SHL 2)
+          DB        OPJMP
+          DW     LINE339
 
-;    377  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;    377 txot  1    0
+LINE377
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
 ;    378  lod  0    3
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (3 SHL 1)
 
 ;    379  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    380  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;    381  sto  0    3
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (3 SHL 1)
 
 ;    382  jmp  0  329
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (329 SHL 2)
+          DB        OPJMP
+          DW     LINE329
 
-;    383  ret  0    0
-          DB     OPRET
-          DB     0
-          DW     0
+;    383 pret  0    0
+LINE383
+          DB       OPPRET
+; no ax field
 
 ;    384  jmp  0  385
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (385 SHL 2)
+LINE384
+          DB        OPJMP
+          DW     LINE385
 
 ;    385  int  0    8
-          DB     OPINT
-          DB     0
+LINE385
+          DB        OPINT
           DW     (8 SHL 1)
 
 ;    386  lit  0    0
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     0
 
 ;    387  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    388  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    389  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    390  opr  0   11
-          DB     OPOPR
-          DB     0
-          DW    11
+          DB        OPOPR
+          DB     (11 SHL 2)
+; no ax field
 
 ;    391  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
-;    392  lod  1    1
-          DB     OPLOD
-          DB     1
-          DW     (1 SHL 1)
+;    392  lod  1    4
+          DB        OPLOD
+          DB      1
+          DW     (4 SHL 1)
 
 ;    393  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;    394  opr  0   14
-          DB     OPOPR
-          DB     0
-          DW    14
+          DB        OPOPR
+          DB     (14 SHL 2)
+; no ax field
 
 ;    395  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;    396  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    397  opr  0   11
-          DB     OPOPR
-          DB     0
-          DW    11
+          DB        OPOPR
+          DB     (11 SHL 2)
+; no ax field
 
 ;    398  opr  0   14
-          DB     OPOPR
-          DB     0
-          DW    14
+          DB        OPOPR
+          DB     (14 SHL 2)
+; no ax field
 
 ;    399  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
-;    400  lod  1    0
-          DB     OPLOD
-          DB     1
-          DW     (0 SHL 1)
+;    400  lod  1    3
+          DB        OPLOD
+          DB      1
+          DW     (3 SHL 1)
 
 ;    401  opr  0   13
-          DB     OPOPR
-          DB     0
-          DW    13
+          DB        OPOPR
+          DB     (13 SHL 2)
+; no ax field
 
 ;    402  opr  0   14
-          DB     OPOPR
-          DB     0
-          DW    14
+          DB        OPOPR
+          DB     (14 SHL 2)
+; no ax field
 
 ;    403  jpc  0  484
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (484 SHL 2)
+          DB        OPJPC
+          DW     LINE484
 
 ;    404  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;    405  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    406  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;    407  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    408  cal  1    2
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (2 SHL 2)
+;    408 fcal  1    2
+          DB       OPFCAL
+          DW     LINE2
 
 ;    409  sto  0    7
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (7 SHL 1)
 
 ;    410  lod  0    7
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (7 SHL 1)
 
 ;    411  opr  0   17
-          DB     OPOPR
-          DB     0
-          DW    17
+          DB        OPOPR
+          DB     (17 SHL 2)
+; no ax field
 
-;    412  lod  1    2
-          DB     OPLOD
-          DB     1
-          DW     (2 SHL 1)
-
-;    413  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
-
-;    414  jpc  0  484
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (484 SHL 2)
-
-;    415  lod  0    7
-          DB     OPLOD
-          DB     0
-          DW     (7 SHL 1)
-
-;    416  lod  1    4
-          DB     OPLOD
-          DB     1
-          DW     (4 SHL 1)
-
-;    417  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
-
-;    418  lod  0    4
-          DB     OPLOD
-          DB     0
-          DW     (4 SHL 1)
-
-;    419  lod  1   11
-          DB     OPLOD
-          DB     1
-          DW     (11 SHL 1)
-
-;    420  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
-
-;    421  lod  0    5
-          DB     OPLOD
-          DB     0
+;    412  lod  1    5
+          DB        OPLOD
+          DB      1
           DW     (5 SHL 1)
 
-;    422  lod  1   12
-          DB     OPLOD
-          DB     1
-          DW     (12 SHL 1)
+;    413  opr  0    8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
+
+;    414  jpc  0  484
+          DB        OPJPC
+          DW     LINE484
+
+;    415  lod  0    7
+          DB        OPLOD
+          DB      0
+          DW     (7 SHL 1)
+
+;    416  lod  1    7
+          DB        OPLOD
+          DB      1
+          DW     (7 SHL 1)
+
+;    417  opr  0   18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
+
+;    418  lod  0    4
+          DB        OPLOD
+          DB      0
+          DW     (4 SHL 1)
+
+;    419  lod  1   14
+          DB        OPLOD
+          DB      1
+          DW     (14 SHL 1)
+
+;    420  opr  0    8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
+
+;    421  lod  0    5
+          DB        OPLOD
+          DB      0
+          DW     (5 SHL 1)
+
+;    422  lod  1   15
+          DB        OPLOD
+          DB      1
+          DW     (15 SHL 1)
 
 ;    423  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    424  opr  0   14
-          DB     OPOPR
-          DB     0
-          DW    14
+          DB        OPOPR
+          DB     (14 SHL 2)
+; no ax field
 
 ;    425  jpc  0  429
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (429 SHL 2)
+          DB        OPJPC
+          DW     LINE429
 
 ;    426  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    427  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    428  jmp  0  477
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (477 SHL 2)
+          DB        OPJMP
+          DW     LINE477
 
 ;    429  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE429
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    430  lit  0    0
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     0
 
 ;    431  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    432  jpc  0  441
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (441 SHL 2)
+          DB        OPJPC
+          DW     LINE441
 
 ;    433  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;    434  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    435  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    436  opr  0    3
-          DB     OPOPR
-          DB     0
-          DW     3
+          DB        OPOPR
+          DB     (3 SHL 2)
+; no ax field
 
 ;    437  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;    438  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    439  cal  1  384
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (384 SHL 2)
+;    439 fcal  1  384
+          DB       OPFCAL
+          DW     LINE384
 
 ;    440  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    441  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE441
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    442  lit  0    0
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     0
 
 ;    443  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    444  jpc  0  453
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (453 SHL 2)
+          DB        OPJPC
+          DW     LINE453
 
 ;    445  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;    446  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    447  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;    448  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    449  opr  0    3
-          DB     OPOPR
-          DB     0
-          DW     3
+          DB        OPOPR
+          DB     (3 SHL 2)
+; no ax field
 
 ;    450  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    451  cal  1  384
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (384 SHL 2)
+;    451 fcal  1  384
+          DB       OPFCAL
+          DW     LINE384
 
 ;    452  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    453  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE453
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    454  lit  0    0
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     0
 
 ;    455  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    456  jpc  0  465
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (465 SHL 2)
+          DB        OPJPC
+          DW     LINE465
 
 ;    457  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;    458  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    459  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    460  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;    461  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;    462  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    463  cal  1  384
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (384 SHL 2)
+;    463 fcal  1  384
+          DB       OPFCAL
+          DW     LINE384
 
 ;    464  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    465  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE465
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    466  lit  0    0
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     0
 
 ;    467  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    468  jpc  0  477
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (477 SHL 2)
+          DB        OPJPC
+          DW     LINE477
 
 ;    469  stk  1    4
-          DB     OPSTK
-          DB     1
+          DB        OPSTK
+          DB      1
           DW     (4 SHL 1)
 
 ;    470  lod  0    4
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (4 SHL 1)
 
 ;    471  lod  0    5
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (5 SHL 1)
 
 ;    472  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    473  opr  0    2
-          DB     OPOPR
-          DB     0
-          DW     2
+          DB        OPOPR
+          DB     (2 SHL 2)
+; no ax field
 
 ;    474  stk  0    6
-          DB     OPSTK
-          DB     0
+          DB        OPSTK
+          DB      0
           DW     (6 SHL 1)
 
-;    475  cal  1  384
-          DB     OPCAL
-          DB     1
-          DW     PASPROG + (384 SHL 2)
+;    475 fcal  1  384
+          DB       OPFCAL
+          DW     LINE384
 
 ;    476  sto  0    6
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
 ;    477  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE477
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    478  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    479  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    480  jpc  0  484
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (484 SHL 2)
+          DB        OPJPC
+          DW     LINE484
 
 ;    481  lod  0    7
-          DB     OPLOD
-          DB     0
+          DB        OPLOD
+          DB      0
           DW     (7 SHL 1)
 
-;    482  lod  1    5
-          DB     OPLOD
-          DB     1
-          DW     (5 SHL 1)
+;    482  lod  1    8
+          DB        OPLOD
+          DB      1
+          DW     (8 SHL 1)
 
 ;    483  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
 
 ;    484  lod  0    6
-          DB     OPLOD
-          DB     0
+LINE484
+          DB        OPLOD
+          DB      0
           DW     (6 SHL 1)
 
 ;    485  sto  0    3
-          DB     OPSTO
-          DB     0
+          DB        OPSTO
+          DB      0
           DW     (3 SHL 1)
 
-;    486  ret  1    0
-          DB     OPRET
-          DB     1
-          DW     0
+;    486 fret  1    0
+          DB       OPFRET
+; no ax field
 
-;    487  int  0   15
-          DB     OPINT
-          DB     0
-          DW     (15 SHL 1)
+;    487  int  0   18
+LINE487
+          DB        OPINT
+          DW     (18 SHL 1)
 
 ;    488  lit  0  800
-          DB     OPLIT
-          DB     0
-          DW   800
+          DB        OPLIT
+          DW     800
 
-;    489  sto  0   13
-          DB     OPSTO
-          DB     0
-          DW     (13 SHL 1)
+;    489  sto  0   16
+          DB        OPSTO
+          DB      0
+          DW     (16 SHL 1)
 
 ;    490  lit  0   32
-          DB     OPLIT
-          DB     0
-          DW    32
+          DB        OPLIT
+          DW     32
 
-;    491  sto  0    2
-          DB     OPSTO
-          DB     0
-          DW     (2 SHL 1)
-
-;    492  lit  0   35
-          DB     OPLIT
-          DB     0
-          DW    35
-
-;    493  sto  0    3
-          DB     OPSTO
-          DB     0
-          DW     (3 SHL 1)
-
-;    494  lit  0   46
-          DB     OPLIT
-          DB     0
-          DW    46
-
-;    495  sto  0    4
-          DB     OPSTO
-          DB     0
-          DW     (4 SHL 1)
-
-;    496  lit  0  111
-          DB     OPLIT
-          DB     0
-          DW   111
-
-;    497  sto  0    5
-          DB     OPSTO
-          DB     0
+;    491  sto  0    5
+          DB        OPSTO
+          DB      0
           DW     (5 SHL 1)
 
-;    498  tot  1  130
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+130
+;    492  lit  0   35
+          DB        OPLIT
+          DW     35
 
-;    499  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
-
-;    500  lit  040960
-          DB     OPLIT
-          DB     0
-          DW 40960
-
-;    501  lit  0  113
-          DB     OPLIT
-          DB     0
-          DW   113
-
-;    502  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
-
-;    503  lit  040960
-          DB     OPLIT
-          DB     0
-          DW 40960
-
-;    504  opr  0   17
-          DB     OPOPR
-          DB     0
-          DW    17
-
-;    505  lit  0  113
-          DB     OPLIT
-          DB     0
-          DW   113
-
-;    506  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
-
-;    507  jpc  0  511
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (511 SHL 2)
-
-;    508  lit  040960
-          DB     OPLIT
-          DB     0
-          DW 40960
-
-;    509  sto  0   14
-          DB     OPSTO
-          DB     0
-          DW     (14 SHL 1)
-
-;    510  jmp  0  524
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (524 SHL 2)
-
-;    511  lit  0 8192
-          DB     OPLIT
-          DB     0
-          DW  8192
-
-;    512  lit  0  113
-          DB     OPLIT
-          DB     0
-          DW   113
-
-;    513  opr  0   18
-          DB     OPOPR
-          DB     0
-          DW    18
-
-;    514  lit  0 8192
-          DB     OPLIT
-          DB     0
-          DW  8192
-
-;    515  opr  0   17
-          DB     OPOPR
-          DB     0
-          DW    17
-
-;    516  lit  0  113
-          DB     OPLIT
-          DB     0
-          DW   113
-
-;    517  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
-
-;    518  jpc  0  522
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (522 SHL 2)
-
-;    519  lit  0 8192
-          DB     OPLIT
-          DB     0
-          DW  8192
-
-;    520  sto  0   14
-          DB     OPSTO
-          DB     0
-          DW     (14 SHL 1)
-
-;    521  jmp  0  524
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (524 SHL 2)
-
-;    522  tot  1  166
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+166
-
-;    523  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
-
-;    524  tot  1  199
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+199
-
-;    525  lod  0   14
-          DB     OPLOD
-          DB     0
-          DW     (14 SHL 1)
-
-;    526  tot  2    0
-          DB     TXOUT
-          DB     2
-          DW     0 ; uint16, on stack
-
-;    527  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
-
-;    528  tot  1  213
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+213
-
-;    529  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
-
-;    530  cal  0   89
-          DB     OPCAL
-          DB     0
-          DW     PASPROG + (89 SHL 2)
-
-;    531  tot  1  227
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+227
-
-;    532  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
-
-;    533  cal  0  325
-          DB     OPCAL
-          DB     0
-          DW     PASPROG + (325 SHL 2)
-
-;    534  tot  1  242
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+242
-
-;    535  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
-
-;    536  stk  1    4
-          DB     OPSTK
-          DB     1
-          DW     (4 SHL 1)
-
-;    537  lod  0    9
-          DB     OPLOD
-          DB     0
-          DW     (9 SHL 1)
-
-;    538  lod  0   10
-          DB     OPLOD
-          DB     0
-          DW     (10 SHL 1)
-
-;    539  stk  0    6
-          DB     OPSTK
-          DB     0
+;    493  sto  0    6
+          DB        OPSTO
+          DB      0
           DW     (6 SHL 1)
 
-;    540  cal  0  384
-          DB     OPCAL
-          DB     0
-          DW     PASPROG + (384 SHL 2)
+;    494  lit  0   46
+          DB        OPLIT
+          DW     46
 
-;    541  sto  0    8
-          DB     OPSTO
-          DB     0
+;    495  sto  0    7
+          DB        OPSTO
+          DB      0
+          DW     (7 SHL 1)
+
+;    496  lit  0  111
+          DB        OPLIT
+          DW     111
+
+;    497  sto  0    8
+          DB        OPSTO
+          DB      0
           DW     (8 SHL 1)
 
-;    542  lod  0    8
-          DB     OPLOD
-          DB     0
-          DW     (8 SHL 1)
+;    498 txot  1  130
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+130
+
+;    499 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
+
+;    500  lit  040960
+          DB        OPLIT
+          DW     40960
+
+;    501  lit  0  113
+          DB        OPLIT
+          DW     113
+
+;    502  opr  0   18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
+
+;    503  lit  040960
+          DB        OPLIT
+          DW     40960
+
+;    504  opr  0   17
+          DB        OPOPR
+          DB     (17 SHL 2)
+; no ax field
+
+;    505  lit  0  113
+          DB        OPLIT
+          DW     113
+
+;    506  opr  0    8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
+
+;    507  jpc  0  511
+          DB        OPJPC
+          DW     LINE511
+
+;    508  lit  040960
+          DB        OPLIT
+          DW     40960
+
+;    509  sto  0   17
+          DB        OPSTO
+          DB      0
+          DW     (17 SHL 1)
+
+;    510  jmp  0  524
+          DB        OPJMP
+          DW     LINE524
+
+;    511  lit  0 8192
+LINE511
+          DB        OPLIT
+          DW     8192
+
+;    512  lit  0  113
+          DB        OPLIT
+          DW     113
+
+;    513  opr  0   18
+          DB        OPOPR
+          DB     (18 SHL 2)
+; no ax field
+
+;    514  lit  0 8192
+          DB        OPLIT
+          DW     8192
+
+;    515  opr  0   17
+          DB        OPOPR
+          DB     (17 SHL 2)
+; no ax field
+
+;    516  lit  0  113
+          DB        OPLIT
+          DW     113
+
+;    517  opr  0    8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
+
+;    518  jpc  0  522
+          DB        OPJPC
+          DW     LINE522
+
+;    519  lit  0 8192
+          DB        OPLIT
+          DW     8192
+
+;    520  sto  0   17
+          DB        OPSTO
+          DB      0
+          DW     (17 SHL 1)
+
+;    521  jmp  0  524
+          DB        OPJMP
+          DW     LINE524
+
+;    522 txot  1  166
+LINE522
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+166
+
+;    523 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
+
+;    524 txot  1  199
+LINE524
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+199
+
+;    525  lod  0   17
+          DB        OPLOD
+          DB      0
+          DW     (17 SHL 1)
+
+;    526 txot  2    0
+          DB        TXOUT
+          DB      2
+          DW     0 ; uint16, on stack
+
+;    527 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
+
+;    528 txot  1  213
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+213
+
+;    529 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
+
+;    530 pcal  0   89
+          DB       OPPCAL
+          DW     LINE89
+
+;    531 txot  1  227
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+227
+
+;    532 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
+
+;    533 pcal  0  325
+          DB       OPPCAL
+          DW     LINE325
+
+;    534 txot  1  242
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+242
+
+;    535 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
+
+;    536  stk  1    4
+          DB        OPSTK
+          DB      1
+          DW     (4 SHL 1)
+
+;    537  lod  0   12
+          DB        OPLOD
+          DB      0
+          DW     (12 SHL 1)
+
+;    538  lod  0   13
+          DB        OPLOD
+          DB      0
+          DW     (13 SHL 1)
+
+;    539  stk  0    6
+          DB        OPSTK
+          DB      0
+          DW     (6 SHL 1)
+
+;    540 fcal  0  384
+          DB       OPFCAL
+          DW     LINE384
+
+;    541  sto  0   11
+          DB        OPSTO
+          DB      0
+          DW     (11 SHL 1)
+
+;    542  lod  0   11
+          DB        OPLOD
+          DB      0
+          DW     (11 SHL 1)
 
 ;    543  lit  0    1
-          DB     OPLIT
-          DB     0
+          DB        OPLIT
           DW     1
 
 ;    544  opr  0    8
-          DB     OPOPR
-          DB     0
-          DW     8
+          DB        OPOPR
+          DB     (8 SHL 2)
+; no ax field
 
 ;    545  jpc  0  549
-          DB     OPJPC
-          DB     0
-          DW     PASPROG + (549 SHL 2)
+          DB        OPJPC
+          DW     LINE549
 
-;    546  tot  1  253
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+253
+;    546 txot  1  253
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+253
 
-;    547  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;    547 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
 ;    548  jmp  0  551
-          DB     OPJMP
-          DB     0
-          DW     PASPROG + (551 SHL 2)
+          DB        OPJMP
+          DW     LINE551
 
-;    549  tot  1  260
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+260
+;    549 txot  1  260
+LINE549
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+260
 
-;    550  tot  1    0
-          DB     TXOUT
-          DB     1
-          DW     CONSTCHARTXT+0
+;    550 txot  1    0
+          DB        TXOUT
+          DB      1
+          DW       CONSTCHARTXT+0
 
-;    551  cal  0  325
-          DB     OPCAL
-          DB     0
-          DW     PASPROG + (325 SHL 2)
+;    551 pcal  0  325
+LINE551
+          DB       OPPCAL
+          DW     LINE325
 
 ;    552  xit  0    0
-          DB     OPXIT
-          DB     0
-          DW     0
+          DB        OPXIT
+; no ax field
 
 CONSTCHARTXT
           DB          13    ;  
