@@ -1,1 +1,3 @@
-/Users/john/Desktop/CDP1802-Desktop/a18/a18 TinyPascalInterp.asm -l TinyPascalInterp.lst -o TinyPascalInterp.hex
+# /Users/john/Desktop/CDP1802-Desktop/a18/a18 TinyPascalInterp.asm -l TinyPascalInterp.lst -o TinyPascalInterp.hex
+
+/home/john/Desktop/Pascal/A18/a18 TinyPascalInterp.asm -l TinyPascalInterp.lst -o TinyPascalInterp.hex

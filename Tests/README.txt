@@ -1,15 +1,20 @@
 Tests.
 ------
 
+  All tests are compiled to be loaded at memory 8800. They assume you are
+  running on a Membership/chip card, because the I/O routines are coded to
+  work with the "MC20ANSA" ROM.
+
+  If your RAM is in lower memory, or you have different SCRT address for
+  read and write characters, you'll need to compile and assemble the
+  tests.
+
 maze3a:
   Go through a maze; find path from start to end.
   A recursive program; highlighting peek, poke, and writeln. 
-  It is compiled to be loaded at memory 8800. If your RAM is 
-  in lower memory, you'll need to recompile and reassemble this.
 
-
-biggerMaze: a bigger maze than maze3a; takes a few seconds longer
-to run.
+biggerMaze: 
+  A bigger maze than maze3a; takes a few seconds longer to run.
 
 files in this directory:
 ------------------------
@@ -54,4 +59,28 @@ maze3a.lst  : assembler listing - I use this for debugging in Emma-02,
               It is included here should you want to give this 
               a try without needing to set up all the tools required.
 
-README.txt  : this file 
+---- other tests, for those interested:
+
+loopTests	- for, while, repeat loop tests.
+		- note, UINT16s are printed in HEX on the 1802;
+		-       currently the compiler prints in decimal.
+
+readln		- read text from keyboard. End with "}" key.
+	
+recur-number	- prints a number in hex, decimal and octal.
+		- ***NOTE - v0.6 of the 1802 interpreter does not
+		  print quite right, so this version has an "if"
+		  chain. (see the code) 
+
+setCombinations - 16 bit "set" combination tests.
+
+setComparisons	- comparing two or more sets, for inclusion.
+
+setUnionTest	- adding/removing set elements.
+
+uint16Conditionals - test all ">=", etc condition tests.
+		- should print a bunch of "pass" lines
+
+----
+
+               README.txt  : this file 

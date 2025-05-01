@@ -20,6 +20,17 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
+; last edit - Apr 28 2025 - working on uint16 division
+;
+; March 28 2025
+; for set handling (16 bit sets only on this iteration)  
+;        {Set word-wide (16 bit) operators}
+;        const opr_or_set     
+;        const opr_and_set    
+;        const opr_dotdot_set 
+;        const opr_difference_set
+;
+
 ; Feb 11 2025
 ; shrinking pcode size by removing unused fields in each instruction.
 ;
@@ -239,7 +250,7 @@ MC20SREG 	EQU	0EH ; where serial parameters are stored for the Monitor
 	ENDI
 
 ; where the users' program should reside
-PLPROG EQU     ORGINIT + 0800H
+PASPROG EQU     ORGINIT + 0800H
 ; PAGES
 PAGE1 EQU     ORGINIT + 0100H
 PAGE2 EQU     ORGINIT + 0200H
@@ -307,9 +318,9 @@ FIN_HELLO_STR
 	; and registers into "interpret" mode.
 
 	; TinyPascal "Program Counter"
-	LDI     HIGH PLPROG
+	LDI     HIGH PASPROG
 	PHI     TPASPC
-	LDI     LOW PLPROG
+	LDI     LOW PASPROG
 	PLO     TPASPC
 	
 	; TinyPascal Base function
@@ -335,9 +346,9 @@ FIN_HELLO_STR
 	STXD	
 	; and finally p
 	LDI	00H
-	LDI	HIGH	PLPROG
+	LDI	HIGH	PASPROG
 	STXD	
-	LDI	LOW	PLPROG
+	LDI	LOW	PASPROG
 	STXD	
 	; and return stack pointing to empty stack.
 	LDI	LOW	STACKST
@@ -396,7 +407,7 @@ SCRT_RETURN
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-MY_VERSION	EQU	'05'		; for checking, also doubles as visual indicator
+MY_VERSION	EQU	'06'		; for checking, also doubles as visual indicator
 
 ; HELLOSTRING. Version number is encoded as year month day
 
@@ -418,10 +429,10 @@ HELLOSTRING
 	DB	'5'
 	DB	'-'
 	DB	'0'
-	DB	'2'
+	DB	'4'
 	DB	'-'
-	DB	'1'
-	DB	'1'
+	DB	'2'
+	DB	'9'
 	DB	' '
 	DB	'V'
 	DW	MY_VERSION
@@ -881,17 +892,27 @@ OPJPCCODE
 
 	; pop the conditional
 	; pop top of stack, and store it in TPTMP0
-	; if 1, then the JPC is true, which just
+	; if 1 (or, more properly, NOT ZERO), 
+        ; then the JPC is true, which just
 	; means continue.
 	; if 0, we do the jump
 	INC STACKREG
 	LDXA
-	PLO TPTMP0
-	LDX
-	PHI TPTMP0
+	
+	; OR what is in D with top of stack
+	; to see if all 16 bits are 0
+	; result is in D
+
+	OR
+	
+
+	;PLO TPTMP0
+	;LDX
+	;PHI TPTMP0
 
 	; do the test
-	GLO	TPTMP0
+	;GLO	TPTMP0
+
 	BNZ	JPC_CONT
 
 	;get  address and jump to it
@@ -925,44 +946,114 @@ JPC_CONT
 ; run the specific opcode.
 
 ; OPOPRCODE jump table
+;   const opr_neg_uint16 = 0;   {negative number uint16}
+	LBR	OPR_NEG
+	DB	0
 
-	LBR	OPR_VERSION   ; version chk  EQU 000H
+;   const opr_plus_uint16 = 1;  {plus uint16}
+	LBR	OPR_ADD
 	DB	0
-	LBR	OPR_NEG       ; negate       EQU 001H
+
+;   const opr_minus_uint16= 2;  {minus}
+	LBR	OPR_SUB 
 	DB	0
-	LBR	OPR_ADD     ; add          EQU 002H
+
+;   const opr_mul_uint16 = 3;   {multiply}
+	LBR	OPR_UMUL
 	DB	0
-	LBR	OPR_SUB     ; subtract     EQU 003H
+
+;   const opr_div_uint16 = 4;   {divide}
+	LBR	OPR_UDIV
 	DB	0
-	LBR	OPR_UMUL      ;  multiply    EQU 004H
+
+;   const opr_mod_uint16 = 5;   {MOD}
+	LBR	OPR_UMOD
 	DB	0
-	LBR	OPR_UDIV      ;  division    EQU 005H
+
+;   const opr_eql_uint16 = 6;   {eql}
+	LBR	OPR_UEQL
 	DB	0
-	LBR	OPR_UODD      ; ord(odd)     EQU 006H
+
+;   const opr_neq_uint16 = 7;   {neq}
+	LBR	OPR_UNEQ
 	DB	0
-	LBR	OPR_UMOD    ; mod opr      EQU 007H
-	DB	0
-	LBR	OPR_UEQL    ; equals       EQU 008H
-	DB	0
-	LBR	OPR_UNEQ    ; neq          EQU 009H
-	DB	0
+
+;   const opr_lss_uint16 = 8;   {lss}
 	LBR	OPR_ULSS    ; lt           EQU 00AH
 	DB	0
+
+;   const opr_geq_uint16 = 9;   {geq}
 	LBR	OPR_UGEQ    ; ge           EQU 00BH
 	DB	0
+
+;   const opr_gtr_uint16 = 10;  {gtr}
 	LBR	OPR_UGTR    ; gtr          EQU 00CH
 	DB	0
+
+;   const opr_leq_uint16 = 11;  {leq}
 	LBR	OPR_ULEQ    ; leq          EQU 00DH
 	DB	0
+
+;   const opr_and_uint16 = 12;  {and}
 	LBR	OPR_AND       ; AND          EQU 00EH
 	DB	0
+
+;   const opr_or_uint16  = 13;  {or}
 	LBR	OPR_OR        ; OR           EQU 00FH
 	DB	0
+
+;   const opr_not_uint16 = 14;  {NOT}
 	LBR	OPR_NOT       ; NOT          EQU 010H
 	DB	0
+
+;   {direct memory access operators}
+;   const opr_peek= 15;  {peek at RAM}
 	LBR	OPR_PEEK      ; PEEK         EQU 011H
 	DB	0
+
+;   const opr_poke= 16;  {poke at RAM}
 	LBR	OPR_POKE      ; POKE         EQU 012H
+	DB	0
+
+;   {Set word-wide (16 bit) operators}
+;   const opr_or_set16     = 17;
+        ; our "or" is 16 bit compatible
+	;LBR	OPR_OR_SET    ; set OR       EQU 013H
+	LBR	OPR_OR        ; OR           EQU 00FH
+	DB	0
+
+;   const opr_and_set16    = 18;
+        ; our "and" is 16 bit compatible
+	;LBR	OPR_AND_SET   ; set AND	     EQU 014H
+	LBR	OPR_AND       ; AND          EQU 00EH
+	DB	0
+
+;   const opr_dotdot_set16 = 19;       {".." operator}
+	LBR	OPR_DOT_SET   ; handle dotdot EQU 015H
+        DB	0
+
+;   const opr_invert_set16 = 20;       {16 bit "not"}
+	LBR	OPR_INVERT_SET
+	DB	0
+
+;   const opr_int_toSet16  = 21;       {promote enum to set for comparison}
+	LBR	OPR_INT_TOSET
+	DB	0
+
+;   const opr_eql_set16    = 22;       {"=" operator}
+	LBR	OPR_EQL_SET
+	DB	0
+
+;   const opr_neq_set16    = 23;       {"<>" operator}
+	LBR	OPR_NEQ_SET
+	DB	0
+
+;   const opr_Lincl_set16  = 24;       {"<=" operator}
+	LBR	OPR_INCL_SET
+	DB	0
+
+;   const opr_flip_tos16   = 25;       {tos := tos-1, tos-1 := tos}
+	LBR	OPR_FLIP_TOS
 	DB	0
 
 
@@ -988,9 +1079,12 @@ OPOPRCODE
 	PLO	SCRTPC
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-OPR_VERSION
-OPR_NEG		; Only have uints, so can't "negate"
-OPR_UODD
+OPR_VERSION	; VERSION tag bad. Does not match compiler.
+OPR_NEG		; negate, but we only handle unsigned for now...
+
+		; DOT - I don't think the compiler can parse set initializers with
+		; runtime settings??
+OPR_DOT_SET   ; handle dotdot EQU 015H
 
 	; if here, something wrong
 	LDI	HIGH	OP_BAD
@@ -998,6 +1092,116 @@ OPR_UODD
 	LDI	LOW	OP_BAD
 	PLO	TPTMP1
 	LBR	TX_FIN_LOOP
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+OPR_INVERT_SET
+        ; used in set - set
+        ; TOS is in TPTMP0
+        ; XOR it with itself
+        ; store it on stack
+        GHI     TPTMP0
+        XRI	0FFH
+        STXD
+        GLO     TPTMP0
+        XRI	0FFH
+        STXD
+        LBR     INTERP
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+OPR_FLIP_TOS
+        ; flip the top two 16-bit words on stack
+	INC	STACKREG
+        LDXA    
+        PLO     TPTMP1
+        LDX    
+        PHI     TPTMP1
+        GHI     TPTMP0
+        STXD
+        GLO     TPTMP0
+        STXD
+        GHI     TPTMP1
+        STXD
+        GLO     TPTMP1
+        STXD
+        LBR     INTERP
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+OPR_INT_TOSET
+	; used in set - make an int (0->15) into a set
+	; TOS is in TPTMP0
+	LDI	HIGH	ITOSET_TABLE
+	PHI	TPTMP1
+	GLO	TPTMP0
+	SHL
+	ADI	LOW	ITOSET_TABLE
+	PLO	TPTMP1
+
+	; get the table entry
+	SEX	TPTMP1
+	LDXA	
+	PHI	TPTMP0
+	LDX	
+	PLO	TPTMP0
+
+	; push it onto stack
+	SEX	STACKREG
+        GHI     TPTMP0
+        STXD
+        GLO     TPTMP0
+        STXD
+        LBR     INTERP
+
+ITOSET_TABLE
+	;change int 0-> 15 into bitset.
+	;0
+        DB 00H
+	DB 01H
+	;1
+	DB 00H
+	DB 02H
+	;2
+	DB 00H
+	DB 04H
+	;3
+	DB 00H
+	DB 08H
+	;4
+	DB 00H
+	DB 010H
+	;5
+	DB 00H
+	DB 020H
+	;6
+	DB 00H
+	DB 040H
+	;7
+	DB 00H
+	DB 080H
+	;8
+	DB 01H
+	DB 00H
+        ;9
+	DB 02H 
+	DB 00H
+	;10
+	DB 04H
+	DB 00H
+	;11
+	DB 08H
+	DB 00H
+	;12
+	DB 010H
+	DB 00H
+	;13
+	DB 020H
+	DB 00H
+	;14
+	DB 040H
+	DB 00H
+	;15
+	DB 080H
+	DB 00H
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; make TinyPascal code at a page boundary.
@@ -1247,8 +1451,10 @@ OPR_UDIV
 	; if overflow of w on the shift left, gets reset to 0xFFFF, 
 	;
 	;printf ("divide, x %d slash y %d should be %d\n",x,y, x/y);
-	;r = x = 300; w =y = 7; q = 0;
-	; 300/7 is 42 dec 2A hex.
+	;... Numerator is "x", denominator is "y";
+	;
+	;r = x; w =y; q = 0;
+	; if x/y, then r=numerator,w=denominator
 	;
 	;while (w <= r) {w = w*2;}
 	;while (w > y) {
@@ -1260,18 +1466,29 @@ OPR_UDIV
 	;  }
 	;printf (result in q);
 	;}
-	; TOS is in TPTMP0 - in the C code, this is "w" or orig "y"
-	; which is the denominator.
-	; SP points to the numerator 
+	; Register/Stack usage:
+	;	TPTMP0 (R0)	"w"
+	;	TPTMP2 (RA)	"q"
+	; Stack: (address is an example)
+	; --- (FF74)	"y".l
+	; --- (FF75)	"y".h	Denominator
+	; --- (FF76)	"r".l
+	; --- (FF77)	"r".h	Numerator 
+	;
+	; On entry, SP -> FF75, as the general OPR code loads
+	; the first 2 bytes into TPTMP0 (R0) which is the denominator.
+	; so, STACK PTR ->FF75, INC it to get to "r", DEC it to get to "y"
+
 
 UDIV_COMMON
 	; BOUNDS CHECK #1, is denominator "w" in TPTMP0
 	; not zero?
-	GHI	TPTMP0
+	GHI	TPTMP0		;w.h 
 	LBNZ	UDIV_BC1
-	GLO	TPTMP0
+	GLO	TPTMP0		;w.l
 	LBNZ	UDIV_BC1
-
+	
+	; Denominator is 0.
 	; BOUNDS CHECK FAIL
 	; if here, something wrong - divide by zero
 	LDI	HIGH	DIV_BY_ZERO
@@ -1280,45 +1497,58 @@ UDIV_COMMON
 	PLO	TPTMP1
 	LBR	TX_FIN_LOOP
 
-
+	; past the bounds check, lets do it!
 UDIV_BC1
 	; zero "q"
 	LDI	00H
-	PLO	TPTMP2
-	PHI	TPTMP2
+	PLO	TPTMP2		;q.l
+	PHI	TPTMP2		;q.h
 
-	; get numerator ("r") now, and put into TPTMP1
-	INC	STACKREG
-	INC	STACKREG
+	; Point to the numerator ("r") now
+	INC	STACKREG	;SP -> FF76
+	INC	STACKREG	;SP -> FF77
 	;
 
-	; r is still on the stack, get X reg to it so we
-	; can do the comparison.
-	; R2 (stack) points to low byte of r value, Stack+1
-	; points to high byte. 
+	; R2 (stack) points to high byte of r value, Stack-1
+	; points to low byte. 
 	; Manipulate "w" but keep "y" in memory for second
 	;-----------------------------------------------------
 	; first while loop in UDIV
 UDIV_WHILE1
 		; while (w <= r) {w = w*2}
+		; "r" is on the stack, "w" in TPTMP0
 
 		; upper byte first
-		GHI	TPTMP0
-		SD
-
+		; SP -> FF77, r.h
+		;--------------------------------------------
 		; do we continue, or test lower bits or exit?
-		BNF	UDIV_WHILE1_EXIT
-		BNZ	UDIV_WHILE1_LOOP
-		; check lower bits
-		INC	STACKREG
-		GLO	TPTMP0
-		SM	; changed from SD to SM Dec7 2024
-		DEC	STACKREG
-		BNF	UDIV_WHILE1_EXIT
+		; "w" "r"
+		; D   R(x)	SD		SM
+		; 4 < 5		DF 1 D 01	DF 0 D FF
+		; 5 = 5		DF 1 D 00	DF 1 D 00
+		; 6 > 5		DF 0 D FF	DF 1 D 01
+		;--------------------------------------------
 
+		GHI	TPTMP0		; w.h
+		SD			; 
+
+		; from table above if w 
+		BNF	UDIV_WHILE2	; if w.h > r.h, go to while2
+		BNZ	UDIV_WHILE1_LOOP; if w.h < r.h, continue
+
+		; but if w.h = r.h, check lower bits
+		DEC	STACKREG	; point now to r.l
+					; SP -> FF76
+		GLO	TPTMP0		; w.l
+		SD			; 
+		INC	STACKREG	; SP -> FF77
+		BNF	UDIV_WHILE2	; we are less...
+
+		; if DF is set, we are still >=
+		; ok, continue the loop.
 UDIV_WHILE1_LOOP
 		; {w = w*2}
-		; SHL "w", which is in TMP0
+		; SHL "w", which is in TPTMP0
 		GLO	TPTMP0
 		SHL
 		PLO	TPTMP0
@@ -1340,37 +1570,36 @@ UDIV_WHILE1_LOOP
 		; ok, upper bite is giving us good signs...
 		; do we need to test lower bits?
 
-UDIV_WHILE1_EXIT
 	;-----------------------------------------------------
 	; second while loop in UDIV
+	; SP -> FF77	; r.h
+
 UDIV_WHILE2
 
 	; Y is untouched on the stack, but we have to decrement 
 	; to get to it
-	DEC	STACKREG
-	DEC	STACKREG
+	DEC	STACKREG	; SP -> FF76 ;r.l
+	DEC	STACKREG	; SP -> FF75 ;y.h
 UDIV_W2_LOOP
 	;while (w > y) {
 		; Y is on the stack, W is TPTMP0
+		; currently, SP -> FF75 ; y.h
 		GHI	TPTMP0
 		SD
 		; high bits; is this greater than?
 		BNF	W2_CONT
 
 		; no, the subtract is 00H,check the lower 8 bits.
-		DEC	STACKREG
+		DEC	STACKREG ; SP -> FF74; y.l
 		GLO 	TPTMP0
 		SD
-		INC	STACKREG
+		INC	STACKREG ; SP -> FF75; y.h
 		BNF	W2_CONT	
 
 		BR	UDIV_W2_FIN
 W2_CONT
 		; ok, do the contents of the 2nd while loop here.
-		; (remember: 
-		;	"w" = TPTMP0
-		;	"r" = on stack
-		;	"q" = TPTMP2
+
 		;  q = q*2;
 		GLO 	TPTMP2
 		SHL	
@@ -1387,88 +1616,91 @@ W2_CONT
 		SHRC	
 		PLO	TPTMP0
 
-		; XXX Working on this if statement
 		;  if (w<=r) {
 			;  w is in TPTMP0
-			;  r is on stack at FEF6 (L)  FEF7 (H)
+			;  r is on stack
 			; get stack back to pointing to "r"
-			INC	STACKREG
-			INC	STACKREG
-			; stack now points to "r".1
-			GHI	TPTMP0
-			SD
-			DEC	STACKREG
-			DEC	STACKREG
+			INC	STACKREG ; SP -> FF76, r.l
+			INC	STACKREG ; SP -> FF77, r.h
 
-			;BNZ	DO_THIS_IF
-			;BDF	UDIV_W2_LOOP
+			; stack now points to "r".h
+			GHI	TPTMP0	; "w"
+			SD
+			DEC	STACKREG ; SP -> FF76, r.l
+			DEC	STACKREG ; SP -> FF75, y.h
 
 			BNF	UDIV_W2_LOOP
 			BNZ	DO_THIS_IF
 			; 
 			; check lower bits
-			INC	STACKREG
+			INC	STACKREG ; sp -> FF76, r.l
 			GLO	TPTMP0
 			SD
-			DEC	STACKREG
+			DEC	STACKREG ; sp -> FF75, y.h
 			BNF	UDIV_W2_LOOP
-
-
 DO_THIS_IF 
-			
 		;  
 		;    r = r-w;
 			;  w is in TPTMP0
 			;  r is on stack at FEF6 (L)  FEF7 (H)
 			; get stack back to pointing to "r"
-			INC	STACKREG
-			; stack now points to "r".0
-			GLO	TPTMP0
+			INC	STACKREG ; sp -> FF76, r.l
+			; stack now points to "r".l
+			GLO	TPTMP0	; w.l
 			SD
 			PLO	TPTMP1
 
-			INC	STACKREG
-			GHI	TPTMP0
+			INC	STACKREG ; sp -> FF77, r.h
+			GHI	TPTMP0	; w.h
 			SDB
 			PHI	TPTMP1
 
 			; store new value of r on stack
 			STXD
-
-			;DEC	STACKREG
 			GLO	TPTMP1
 			STXD
-			;DEC	STACKREG
+			; sp -> FF75, y.h
 
 
 		;    q = q+1;
-			GLO 	TPTMP2
+			GLO 	TPTMP2	; q.l
 			ADI	001H	
-			PLO	TPTMP2
-			GHI 	TPTMP2
-			ADC
-			PHI	TPTMP2
+			PLO	TPTMP2	; q.l
+			
+			; add only if q.l overflows
+			BNF	UDIV_W2_LOOP ;SKIP_UDWH_ADD
+			GHI 	TPTMP2	; q.h
+			ADI	001H
+			PHI	TPTMP2	;q.h
+;SKIP_UDWH_ADD; can just do a BR UDIV_W2_LOOP
 		;  }
 		
 	BR	UDIV_W2_LOOP
 
 	;  }
 UDIV_W2_FIN
-	INC	STACKREG
-	INC	STACKREG
-
 	; is this a MOD (01 in flag) or DIV (00 in flag)
 	; MOD returns "r" which is in TPTMP1
 	; DIV returns "q" which is in TPTMP2
+
 	GHI	TPTMP3
 	BZ	UDIV_IS_DIV
-	GHI	TPTMP1
-	STXD
-	GLO	TPTMP1
-	STXD
+
+	; put the stack where it was, before the OP intro
+	;INC	STACKREG	; SP -> FF76
+	;INC	STACKREG	; SP -> FF77
+
+
+	;GHI	TPTMP1
+	;STXD
+	;GLO	TPTMP1
+	;STXD
 	LBR	INTERP	
 
 UDIV_IS_DIV
+	; put the stack where it was, before the OP intro
+	INC	STACKREG	; SP -> FF76
+	INC	STACKREG	; SP -> FF77
 	GHI	TPTMP2
 	STXD
 	GLO	TPTMP2
@@ -1523,6 +1755,7 @@ OPR_COMMON_RETURN
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Equal
 ;	TOS is in TPTMP0, 2nd argument on stack 
+OPR_EQL_SET
 OPR_UEQL
 	; work through high bytes
 	INC	STACKREG
@@ -1551,6 +1784,7 @@ UEQL_END
 ; NOT Equal
 ;	TOS is in TPTMP0, 2nd argument on stack 
 OPR_UNEQ
+OPR_NEQ_SET
 	; work through high bytes
 	INC	STACKREG
 	INC	STACKREG
@@ -1653,6 +1887,89 @@ UNOT_END
 	LBR	OPR_COMMON_RETURN
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; SET Inclusion
+; this is a combination of AND and equals; 
+; first we see if we AND the bits in the desired
+; set and the main set; this is to get an intersection
+; set. Then, to do the condition, we AND this result
+; with the initial desired set, and the
+; result is put on the stack for a JPC or equiv.
+OPR_INCL_SET
+
+	; ok, TPTMP0 contains the TOS, which is the set.
+	; on the stack still is the variable we want to see
+	; if it is in the set.
+	; from test, where container set has 
+	;   0x00FF
+	; and the variable we want to see if it is in,
+	;   0x0002 
+	
+;STK +2 here (initialization code common ->TPTMP0)
+
+	; step 1 is like an OPR_AND
+        INC     STACKREG
+;STK +3
+        GLO     TPTMP0	; the full set container value
+        AND		; R(x) points here
+        PLO     TPTMP0	; result of and low byte 
+
+        ; work through high bytes
+        INC     STACKREG
+;STK +4
+        GHI     TPTMP0	; full set container value
+        AND
+        PHI     TPTMP0	; result of and high bite
+
+	; in our test, TPTMP1 should return 0x0002,
+	; because 0002 (on the stack) and 00FF (in TPTMP0,
+	; popped from the stack) returns 0002.
+
+	; ok for the AND step to see if all bits of our
+	; test variable fit in the set container, we move
+	; this AND over to TPTMP0, and AND this with
+	; what is on the stack still - the untouched
+	; variable.
+	;
+	; To do this, we take the result (TPTMP1)
+	; and move it to TPTMP0, then jump into the
+	; EQL code, bypassing the initialization pop
+	; that all OPRs do.
+	
+	; "push" the result, so we have STK+2, then jump into
+	; the middle of the EQL code; TPTMP0 will contain the
+	; results of the set intersection, and we test with
+	; an AND to see if the intersection is the required 
+	; contents. 
+
+	DEC	STACKREG
+	DEC	STACKREG
+;STK +2
+
+	; NOW we check for equality between this 
+	; intersection result with orig val.
+	;
+	; jumping directly into the EQL code, there is 
+	; some common setup we can skip.
+	;
+	; simulate getting the stack that happens at the
+	; beginning or OPOPRCODE
+	; pop top of stack, and store it in TPTMP0
+	; OPOPRCODE:	INC STACKREG
+	; OPOPRCODE:	LDXA
+	; OPOPRCODE:	PLO TPTMP0
+	; OPOPRCODE:	LDX
+	; OPOPRCODE:	PHI TPTMP0
+	;
+	; now, just branch to OPR_EQL_SET, the result
+	; of the first AND is stored in the stack,
+	; the second one is prepped with TPTMPO having
+	; the original.
+
+	LBR OPR_EQL_SET
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; PEEK
 ;	TOS is in TPTMP0, it contains the address
 ;	to peek
@@ -1698,17 +2015,27 @@ OPR_POKE
 ; Text output. (uint16, char strings)
 ;
 ; first byte shows what type of data it is;
+; if 0, a newline;
 ; if 1, a text string, and pointer to data follows,
 ; if 2, a uint16, stored on the stack.
+; if 3, an ascii character.
+;
+;        const IO_newLine = 0; {not a valid table entry, so we just use this}
+;        const IO_charString = 1 {charStringType};
+;        const IO_uint16 = 2 {uint16Type};
+;        const IO_char = 3 {charType};
+
+
  
 OPTXOUT
-	LDA	TPASPC
+	LDA	TPASPC		; IO_newline (0) not generated.
 	SMI	1
-	BZ	TX_CHARSTRING
+	BZ	TX_CHARSTRING	; matches IO_charString (1)
 	SMI	1
-	BZ	TX_UINT16
+	BZ	TX_UINT16	; matches IO_uint16 (2)
 	SMI	1
-	BZ	TX_CHAR
+	BZ	TX_CHAR		; matches IO_char (3)
+
 				; nope, an error in data type
 	LDA	TPASPC
 	LDA	TPASPC
@@ -1720,6 +2047,7 @@ OPTXOUT
 
 
 TX_UINT16
+	; Value is on the stack.
 	; the "address" field is meaningless here, so skip
 	LDA	TPASPC
 	LDA	TPASPC
@@ -1733,6 +2061,7 @@ TX_UINT16
 	LBR	PRINT_UINT16
 
 TX_CHAR
+	; Value is on the stack.
 	; the "address" field is meaningless here, so skip
 	LDA	TPASPC
 	LDA	TPASPC
@@ -1749,6 +2078,8 @@ TX_CHAR
 	LBR	INTERP
 
 TX_CHARSTRING
+	; Value is NOT on the stack, AX points to string in memory.
+	; "AX" is the 16 bit pointer to the string, ends in NULL
 	LDA	TPASPC
 	PHI	TPTMP1
 	LDA	TPASPC
@@ -1891,6 +2222,14 @@ OPSTKDEC
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; NOT IMPLEMENTED YET
 OPTXIN
+        ;    t := t+1; s[t] = a
+	; call the SCRT input routine; char in RB.0 on return.
+	LDI	00H
+        STXD
+	SEP	SCRTCALL
+	DW	CHAR_IN_MAIN
+	GLO	DATAREG	; character here
+        STXD
 	LBR	INTERP
 
 
